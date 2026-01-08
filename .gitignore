@@ -4,6 +4,9 @@
 *.xlsm
 *.csv
 
+# Generated outputs (can be recreated by running Stage scripts)
+outputs/
+
 # Python
 __pycache__/
 *.py[cod]
