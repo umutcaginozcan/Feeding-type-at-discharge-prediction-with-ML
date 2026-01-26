@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NICU Breastfeeding Prediction Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            color: #1a1a2e;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .unit-toggle {
+            display: flex;
+            gap: 0.5rem;
+            background: #f0f0f0;
+            padding: 0.25rem;
+            border-radius: 8px;
+        }
+
+        .unit-toggle button {
+            padding: 0.4rem 0.8rem;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .unit-toggle button.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .form-group label .hint {
+            font-size: 0.75rem;
+            color: #a0aec0;
+            font-weight: 400;
+        }
+
+        .tooltip-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            font-size: 11px;
+            cursor: help;
+            margin-left: auto;
+        }
+
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #2d3748;
+            color: white;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            max-width: 300px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group:hover .tooltip {
+            display: block;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input.auto-calculated {
+            background: #f7fafc;
+            border-color: #cbd5e0;
+        }
+
+        .form-group input.warning {
+            border-color: #fc8181;
+            background: #fff5f5;
+        }
+
+        .form-group input::placeholder {
+            color: #cbd5e0;
+        }
+
+        .warning-text {
+            color: #e53e3e;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .warning-text.show {
+            display: block;
+        }
+
+        .auto-calc-badge {
+            position: absolute;
+            top: 2.5rem;
+            right: 0.5rem;
+            background: #48bb78;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            pointer-events: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .prediction-box {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%);
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .prediction-label {
+            font-size: 1.2rem;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+
+        .prediction-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .prediction-value.ebf {
+            color: #48bb78;
+        }
+
+        .prediction-value.formula {
+            color: #ed8936;
+        }
+
+        .prediction-value.mixed {
+            color: #4299e1;
+        }
+
+        .confidence {
+            font-size: 1rem;
+            color: #718096;
+        }
+
+        .confidence-value {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .probabilities {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .prob-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: 2px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+        .prob-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .prob-card h4 {
+            font-size: 0.95rem;
+            color: #4a5568;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .prob-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+
+        .prob-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.8s ease;
+        }
+
+        .prob-fill.ebf {
+            background: linear-gradient(90deg, #48bb78, #38a169);
+        }
+
+        .prob-fill.formula {
+            background: linear-gradient(90deg, #ed8936, #dd6b20);
+        }
+
+        .prob-fill.mixed {
+            background: linear-gradient(90deg, #4299e1, #3182ce);
+        }
+
+        .prob-percent {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .info-banner {
+            background: linear-gradient(135deg, #ebf4ff 0%, #e6fffa 100%);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-banner p {
+            color: #2c5282;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 NICU Breastfeeding Prediction</h1>
+            <p>Clinical Decision Support Tool</p>
+        </div>
+
+        <div class="card">
+            <div class="info-banner">
+                <p><strong>Purpose:</strong> This tool predicts feeding type at discharge for NICU infants based on
+                    early clinical data. Model performance: ROC-AUC = 0.87 ± 0.02</p>
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <form id="predictionForm">
+                <div class="section-title">
+                    📊 Feeding Data (Days 1-3)
+                    <div class="unit-toggle">
+                        <button type="button" class="active" data-unit="ml">mL/cc</button>
+                        <button type="button" data-unit="oz">fl oz</button>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Day 1 Formula Amount <span class="hint" id="unit-label-1">mL</span> <span
+                                class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Volume of formula given on the first day of life (cc or mL)</div>
+                        <input type="number" step="0.1" name="aldığımamamiktari1.gün" id="d1-formula" placeholder="0.0">
+                        <span class="warning-text" id="warn-d1-formula">⚠️ Value seems unusual</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Day 1 Breast Milk <span class="hint" id="unit-label-2">mL</span> <span
+                                class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Volume of mother's milk given on first day (cc or mL)</div>
+                        <input type="number" step="0.1" name="aldığıannesütü_ilkgün" id="d1-bm" placeholder="0.0">
+                        <span class="warning-text" id="warn-d1-bm">⚠️ Value seems unusual</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Day 2 Breast Milk <span class="hint" id="unit-label-3">mL</span> <span
+                                class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Volume of mother's milk given on day 2</div>
+                        <input type="number" step="0.1" name="beslenme2.gunannesutucc" id="d2-bm" placeholder="0.0">
+                    </div>
+                    <div class="form-group">
+                        <label>Day 2 Formula <span class="hint" id="unit-label-4">mL</span> <span
+                                class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Volume of formula given on day 2</div>
+                        <input type="number" step="0.1" name="beslenmemamamiktarı2.guncc" id="d2-formula"
+                            placeholder="0.0">
+                    </div>
+                    <div class="form-group" style="position: relative;">
+                        <label>Day 2 Total Feeding <span class="hint" id="unit-label-5">mL</span></label>
+                        <input type="number" step="0.1" name="beslenmetotali2.gün" id="d2-total"
+                            placeholder="Auto-calculated" class="auto-calculated" readonly>
+                        <span class="auto-calc-badge">AUTO</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Day 3 Breast Milk <span class="hint" id="unit-label-6">mL</span> <span
+                                class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Volume of mother's milk given on day 3</div>
+                        <input type="number" step="0.1" name="aldığıannesütü3.gun" id="d3-bm" placeholder="0.0">
+                    </div>
+                    <div class="form-group">
+                        <label>Day 3 Formula <span class="hint" id="unit-label-7">mL</span> <span
+                                class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Volume of formula given on day 3</div>
+                        <input type="number" step="0.1" name="aldığımamamiktari3.gun" id="d3-formula" placeholder="0.0">
+                    </div>
+                    <div class="form-group" style="position: relative;">
+                        <label>Day 3 Total Feeding <span class="hint" id="unit-label-8">mL</span></label>
+                        <input type="number" step="0.1" name="beslenmetotali3.gun" id="d3-total"
+                            placeholder="Auto-calculated" class="auto-calculated" readonly>
+                        <span class="auto-calc-badge">AUTO</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Day 3 Route <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Feeding route on day 3:
+                            0=None, 1=Oral (PO), 2=Orogastric (OG), 3=PO+OG, 4=Breastfeeding, 5=Breastfeeding+PO,
+                            6=Breastfeeding+OG, 7=Bottle, 8=Bottle+Breastfeeding</div>
+                        <select name="verilisyolu3gun">
+                            <option value="">Select...</option>
+                            <option value="0">None</option>
+                            <option value="1">Oral (PO)</option>
+                            <option value="2">Orogastric (OG)</option>
+                            <option value="3">PO + OG</option>
+                            <option value="4">Breastfeeding</option>
+                            <option value="5">Breastfeeding + PO</option>
+                            <option value="6">Breastfeeding + OG</option>
+                            <option value="7">Bottle feeding</option>
+                            <option value="8">Bottle + Breastfeeding</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section-title">
+                    👶 Infant Characteristics
+                    <div class="unit-toggle">
+                        <button type="button" class="active" data-weight="g">grams</button>
+                        <button type="button" data-weight="lbs">lbs</button>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Birth Weight <span class="hint" id="weight-unit">grams</span> * <span
+                                class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Infant's weight at birth (required for prediction)</div>
+                        <input type="number" step="1" name="dogumagirligi(gram)" id="birth-weight" placeholder="2500"
+                            required>
+                        <span class="warning-text" id="warn-bw">⚠️ Please enter a realistic birth weight
+                            (300-7000g)</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Gestational Age (weeks) * <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Number of completed weeks of pregnancy (required)</div>
+                        <input type="number" step="0.1" name="gebelikhaftası" id="ga-weeks" placeholder="37" required>
+                        <span class="warning-text" id="warn-ga">⚠️ Please enter realistic GA (22-44 weeks)</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Gestational Days <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Additional days within the gestational week (0-6)</div>
+                        <input type="number" step="1" name="gebelikhaftagunu" id="ga-days" placeholder="0" min="0"
+                            max="6">
+                        <span class="warning-text" id="warn-ga-days">⚠️ Should be 0-6 days</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Day 1 Weight <span class="hint" id="weight-unit-2">g</span> <span
+                                class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Infant weight on first day of life</div>
+                        <input type="number" step="1" name="kilo1.gun" id="weight-d1" placeholder="2400">
+                    </div>
+                    <div class="form-group">
+                        <label>Day 2 Weight <span class="hint" id="weight-unit-3">g</span> <span
+                                class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Infant weight on second day</div>
+                        <input type="number" step="1" name="kilo2.gun" id="weight-d2" placeholder="2350">
+                    </div>
+                    <div class="form-group">
+                        <label>Day 3 Weight <span class="hint" id="weight-unit-4">g</span> <span
+                                class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Infant weight on third day</div>
+                        <input type="number" step="1" name="kilo3.gun" id="weight-d3" placeholder="2350">
+                    </div>
+                    <div class="form-group">
+                        <label>Follow-up Day 1 Weight <span class="hint" id="weight-unit-5">g</span> <span
+                                class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Weight at first follow-up visit after discharge</div>
+                        <input type="number" step="1" name="takipilkgün_kilo_gram" id="weight-followup"
+                            placeholder="2450">
+                    </div>
+                </div>
+
+                <div class="section-title">👩 Maternal Factors</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Maternal Age (years) * <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Mother's age in years (required)</div>
+                        <input type="number" step="1" name="anneyasi" id="mat-age" placeholder="28" required>
+                        <span class="warning-text" id="warn-age">⚠️ Please enter realistic age (12-55 years)</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Breastfeeding Education <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Did mother receive breastfeeding education? 0=No, 1=Yes</div>
+                        <select name="annesutuemzirmeegitimidurumu">
+                            <option value="">Select...</option>
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Post-COVID <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Was infant born after July 2020 (COVID-19 pandemic)? 0=No, 1=Yes</div>
+                        <select name="covid19sonrasi">
+                            <option value="">Select...</option>
+                            <option value="0">No (pre-COVID)</option>
+                            <option value="1">Yes (post-COVID)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>BFHI Certificate <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Did hospital have Baby-Friendly Hospital Initiative (BFHI) certification?
+                            0=No, 1=Yes</div>
+                        <select name="ikisiarası">
+                            <option value="">Select...</option>
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>First Day Breast Milk Flag <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Did infant receive any breast milk on first day? 0=No, 1=Yes</div>
+                        <select name="ilk_gün_anne_sütü_1111">
+                            <option value="">Select...</option>
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>First Day Breastfeeding Flag <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Did infant breastfeed directly on first day? 0=No, 1=Yes</div>
+                        <select name="ilk_gün_emzirme_111">
+                            <option value="">Select...</option>
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section-title">🧮 Engineered Features (Optional)</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Weight/Week Ratio <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Birth weight divided by gestational age in weeks (auto-calculated if left
+                            blank)</div>
+                        <input type="number" step="0.1" name="eng_weight_per_week" placeholder="Auto-calculated">
+                    </div>
+                    <div class="form-group">
+                        <label>Delta Vol D1→D2 <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Change in feeding volume from day 1 to day 2 (auto-calculated)</div>
+                        <input type="number" step="0.1" name="eng_delta_vol_d1_d2" placeholder="Auto-calculated">
+                    </div>
+                    <div class="form-group">
+                        <label>Delta Vol D2→D3 <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Change in feeding volume from day 2 to day 3 (auto-calculated)</div>
+                        <input type="number" step="0.1" name="eng_delta_vol_d2_d3" placeholder="Auto-calculated">
+                    </div>
+                    <div class="form-group">
+                        <label>Resilience Index <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Day 3 total feeding normalized by birth weight (auto-calculated)</div>
+                        <input type="number" step="0.001" name="eng_resilience_index" placeholder="Auto-calculated">
+                    </div>
+                    <div class="form-group">
+                        <label>BM Ratio Day 1 <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Proportion of breast milk to total feeding on day 1 (auto-calculated, 0-1)
+                        </div>
+                        <input type="number" step="0.01" name="eng_bm_ratio_d1" placeholder="Auto-calculated">
+                    </div>
+                    <div class="form-group">
+                        <label>BM Ratio Day 2 <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Proportion of breast milk to total feeding on day 2 (auto-calculated, 0-1)
+                        </div>
+                        <input type="number" step="0.01" name="eng_bm_ratio_d2" placeholder="Auto-calculated">
+                    </div>
+                    <div class="form-group">
+                        <label>BM Ratio Day 3 <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Proportion of breast milk to total feeding on day 3 (auto-calculated, 0-1)
+                        </div>
+                        <input type="number" step="0.01" name="eng_bm_ratio_d3" placeholder="Auto-calculated">
+                    </div>
+                    <div class="form-group">
+                        <label>Lactation Momentum <span class="tooltip-icon">?</span></label>
+                        <div class="tooltip">Change in breast milk ratio from day 1 to day 3 (auto-calculated)</div>
+                        <input type="number" step="0.01" name="eng_lactation_momentum" placeholder="Auto-calculated">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn">🔮 Predict Feeding Outcome</button>
+            </form>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing clinical data...</p>
+        </div>
+
+        <div class="card results" id="results">
+            <div class="section-title">📋 Prediction Results</div>
+
+            <div class="prediction-box">
+                <div class="prediction-label">Predicted Feeding Type at Discharge:</div>
+                <div class="prediction-value" id="predictionValue">-</div>
+                <div class="confidence">
+                    Model Confidence: <span class="confidence-value" id="confidenceValue">-</span>
+                </div>
+            </div>
+
+            <div class="probabilities">
+                <div class="prob-card">
+                    <h4>🤱 Exclusive Breastfeeding</h4>
+                    <div class="prob-bar">
+                        <div class="prob-fill ebf" id="probEBF" style="width: 0%"></div>
+                    </div>
+                    <div class="prob-percent" id="probEBFText">0%</div>
+                </div>
+                <div class="prob-card">
+                    <h4>🍼 Formula Feeding</h4>
+                    <div class="prob-bar">
+                        <div class="prob-fill formula" id="probFormula" style="width: 0%"></div>
+                    </div>
+                    <div class="prob-percent" id="probFormulaText">0%</div>
+                </div>
+                <div class="prob-card">
+                    <h4>🤝 Mixed Feeding</h4>
+                    <div class="prob-bar">
+                        <div class="prob-fill mixed" id="probMixed" style="width: 0%"></div>
+                    </div>
+                    <div class="prob-percent" id="probMixedText">0%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+
+        // Unit conversion state
+        let volumeUnit = 'ml';  // ml or oz
+        let weightUnit = 'g';   // g or lbs
+
+        // Unit conversion functions
+        function mlToOz(ml) {
+            return ml / 29.5735;
+        }
+
+        function ozToMl(oz) {
+            return oz * 29.5735;
+        }
+
+        function gramsToLbs(g) {
+            return g / 453.592;
+        }
+
+        function lbsToGrams(lbs) {
+            return lbs * 453.592;
+        }
+
+        // Handle unit toggle buttons
+        document.querySelectorAll('.unit-toggle button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const parent = e.target.parentElement;
+                parent.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+
+                if (e.target.dataset.unit) {
+                    volumeUnit = e.target.dataset.unit;
+                    updateVolumeLabels();
+                } else if (e.target.dataset.weight) {
+                    weightUnit = e.target.dataset.weight;
+                    updateWeightLabels();
+                }
+            });
+        });
+
+        function updateVolumeLabels() {
+            const label = volumeUnit === 'ml' ? 'mL' : 'fl oz';
+            document.querySelectorAll('[id^="unit-label-"]').forEach(el => {
+                el.textContent = label;
+            });
+        }
+
+        function updateWeightLabels() {
+            const label = weightUnit === 'g' ? 'grams' : 'lbs';
+            document.querySelectorAll('[id^="weight-unit"]').forEach(el => {
+                el.textContent = label;
+            });
+        }
+
+        // Auto-calculate Day 2 and Day 3 totals
+        function autoCalculateTotals() {
+            const d2bm = parseFloat(document.getElementById('d2-bm').value) || 0;
+            const d2formula = parseFloat(document.getElementById('d2-formula').value) || 0;
+            const d2total = d2bm + d2formula;
+            document.getElementById('d2-total').value = d2total > 0 ? d2total.toFixed(1) : '';
+
+            const d3bm = parseFloat(document.getElementById('d3-bm').value) || 0;
+            const d3formula = parseFloat(document.getElementById('d3-formula').value) || 0;
+            const d3total = d3bm + d3formula;
+            document.getElementById('d3-total').value = d3total > 0 ? d3total.toFixed(1) : '';
+        }
+
+        // Input validation
+        function validateInputs() {
+            let isValid = true;
+
+            // Birth weight validation
+            const bw = parseFloat(document.getElementById('birth-weight').value);
+            const bwWarn = document.getElementById('warn-bw');
+            if (bw && (bw < 300 || bw > 7000)) {
+                document.getElementById('birth-weight').classList.add('warning');
+                bwWarn.classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('birth-weight').classList.remove('warning');
+                bwWarn.classList.remove('show');
+            }
+
+            // Gestational age validation
+            const ga = parseFloat(document.getElementById('ga-weeks').value);
+            const gaWarn = document.getElementById('warn-ga');
+            if (ga && (ga < 22 || ga > 44)) {
+                document.getElementById('ga-weeks').classList.add('warning');
+                gaWarn.classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('ga-weeks').classList.remove('warning');
+                gaWarn.classList.remove('show');
+            }
+
+            // Gestational days validation
+            const gaDays = parseInt(document.getElementById('ga-days').value);
+            const gaDaysWarn = document.getElementById('warn-ga-days');
+            if (gaDays && (gaDays < 0 || gaDays > 6)) {
+                document.getElementById('ga-days').classList.add('warning');
+                gaDaysWarn.classList.add('show');
+            } else {
+                document.getElementById('ga-days').classList.remove('warning');
+                gaDaysWarn.classList.remove('show');
+            }
+
+            // Maternal age validation
+            const age = parseFloat(document.getElementById('mat-age').value);
+            const ageWarn = document.getElementById('warn-age');
+            if (age && (age < 12 || age > 55)) {
+                document.getElementById('mat-age').classList.add('warning');
+                ageWarn.classList.add('show');
+            } else {
+                document.getElementById('mat-age').classList.remove('warning');
+                ageWarn.classList.remove('show');
+            }
+
+            // Feeding volume validation (should be reasonable)
+            const d1f = parseFloat(document.getElementById('d1-formula').value);
+            const d1fWarn = document.getElementById('warn-d1-formula');
+            if (d1f && (d1f < 0 || d1f > 200)) {
+                document.getElementById('d1-formula').classList.add('warning');
+                d1fWarn.classList.add('show');
+            } else {
+                document.getElementById('d1-formula').classList.remove('warning');
+                d1fWarn.classList.remove('show');
+            }
+
+            const d1bm = parseFloat(document.getElementById('d1-bm').value);
+            const d1bmWarn = document.getElementById('warn-d1-bm');
+            if (d1bm && (d1bm < 0 || d1bm > 200)) {
+                document.getElementById('d1-bm').classList.add('warning');
+                d1bmWarn.classList.add('show');
+            } else {
+                document.getElementById('d1-bm').classList.remove('warning');
+                d1bmWarn.classList.remove('show');
+            }
+
+            return isValid;
+        }
+
+        // Add event listeners for auto-calculation
+        ['d2-bm', 'd2-formula', 'd3-bm', 'd3-formula'].forEach(id => {
+            document.getElementById(id).addEventListener('input', autoCalculateTotals);
+        });
+
+        // Add event listeners for validation
+        ['birth-weight', 'ga-weeks', 'ga-days', 'mat-age', 'd1-formula', 'd1-bm'].forEach(id => {
+            document.getElementById(id).addEventListener('input', validateInputs);
+        });
+
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Validate first
+            if (!validateInputs()) {
+                const errorDiv = document.getElementById('error');
+                errorDiv.textContent = 'Please correct the highlighted fields before submitting.';
+                errorDiv.classList.add('show');
+                setTimeout(() => errorDiv.classList.remove('show'), 5000);
+                return;
+            }
+
+            // Hide previous results and errors
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('error').classList.remove('show');
+
+            // Show loading
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('submitBtn').disabled = true;
+
+            // Collect form data
+            const formData = new FormData(e.target);
+            const data = {};
+
+            for (let [key, value] of formData.entries()) {
+                if (value !== '') {
+                    let numValue = parseFloat(value);
+
+                    // Convert units if needed before sending to API
+                    if (key.includes('mamamiktari') || key.includes('annesutu') || key.includes('beslenme') && volumeUnit === 'oz') {
+                        numValue = ozToMl(numValue);
+                    }
+                    if ((key.includes('kilo') || key.includes('dogumagirligi')) && weightUnit === 'lbs') {
+                        numValue = lbsToGrams(numValue);
+                    }
+
+                    data[key] = numValue;
+                }
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Prediction failed');
+                }
+
+                const result = await response.json();
+
+                // Display results
+                displayResults(result);
+
+            } catch (error) {
+                console.error('Error:', error);
+                const errorDiv = document.getElementById('error');
+                errorDiv.textContent = 'Error: Could not connect to the prediction server. Make sure the Flask app is running on http://localhost:5000';
+                errorDiv.classList.add('show');
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('submitBtn').disabled = false;
+            }
+        });
+
+        function displayResults(result) {
+            const predictionValue = document.getElementById('predictionValue');
+            const confidenceValue = document.getElementById('confidenceValue');
+
+            // Set prediction label
+            predictionValue.textContent = result.prediction_label;
+
+            // Set color class
+            predictionValue.className = 'prediction-value';
+            if (result.prediction === 1) {
+                predictionValue.classList.add('ebf');
+            } else if (result.prediction === 2) {
+                predictionValue.classList.add('formula');
+            } else {
+                predictionValue.classList.add('mixed');
+            }
+
+            // Set confidence
+            confidenceValue.textContent = (result.confidence * 100).toFixed(1) + '%';
+
+            // Set probabilities
+            const probs = result.probabilities;
+
+            // EBF
+            const ebfProb = probs['Exclusive Breastfeeding'] * 100;
+            document.getElementById('probEBF').style.width = ebfProb + '%';
+            document.getElementById('probEBFText').textContent = ebfProb.toFixed(1) + '%';
+
+            // Formula
+            const formulaProb = probs['Formula Feeding'] * 100;
+            document.getElementById('probFormula').style.width = formulaProb + '%';
+            document.getElementById('probFormulaText').textContent = formulaProb.toFixed(1) + '%';
+
+            // Mixed
+            const mixedProb = probs['Mixed Feeding'] * 100;
+            document.getElementById('probMixed').style.width = mixedProb + '%';
+            document.getElementById('probMixedText').textContent = mixedProb.toFixed(1) + '%';
+
+            // Show results
+            document.getElementById('results').classList.add('show');
+
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+
+</html>

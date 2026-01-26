@@ -53,3 +53,14 @@ Icon
 # Environment variables
 .env
 .env.local
+
+# Model files (large binary files)
+*.pkl
+*.joblib
+
+# Antigravity brain directory
+.gemini/
+
+# NICU data directories (contains sensitive patient data)
+excels-NICU-breatsfeeding-data/
+excels-NICU-data/
