@@ -13,11 +13,11 @@
 Machine learning-based clinical decision support tool for predicting feeding type at discharge (Exclusive Breastfeeding, Formula Feeding, or Mixed Feeding) for NICU infants based on early clinical data from days 1-3 of life.
 
 ### Model Performance
-- **ROC-AUC:** 0.87 (95% CI: 0.85-0.89)
-- **Accuracy:** 82.0%
+- **ROC-AUC:** 0.865 ± 0.020
+- **Accuracy:** 79.1% ± 3.3%
 - **Algorithm:** Random Forest Classifier
 - **Validation:** 5-fold Cross-Validation
-- **Sample Size:** n = 1,247
+- **Sample Size:** n = 1,064
 
 ## Features
 
@@ -147,8 +147,8 @@ Click the "📋 Load Example Patient" button in the sidebar to pre-fill with sam
 ### Algorithm
 - **Type:** Random Forest Classifier with preprocessing pipeline
 - **Features:** 30+ clinical variables
-- **Imputation:** KNN imputation for missing values
-- **Scaling:** StandardScaler normalization
+- **Imputation:** Median imputation for missing values
+- **Class Balance:** SMOTE oversampling
 
 ### Training
 - **Cross-Validation:** 5-fold stratified
@@ -158,10 +158,11 @@ Click the "📋 Load Example Patient" button in the sidebar to pre-fill with sam
 ### Performance Metrics
 | Metric | Mean | Std Dev |
 |--------|------|---------|
-| ROC-AUC (Macro) | 0.870 | ±0.020 |
-| Accuracy | 0.820 | ±0.030 |
-| Precision (Macro) | 0.810 | ±0.030 |
-| Recall (Macro) | 0.800 | ±0.030 |
+| ROC-AUC (Macro) | 0.865 | ±0.020 |
+| PR-AUC (Macro) | 0.657 | ±0.049 |
+| Accuracy | 0.791 | ±0.033 |
+| Balanced Accuracy | 0.619 | ±0.070 |
+| F1-Score (Weighted) | 0.789 | ±0.030 |
 
 ## Clinical Disclaimer
 
