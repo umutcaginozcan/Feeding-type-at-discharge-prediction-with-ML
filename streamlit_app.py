@@ -86,12 +86,12 @@ st.markdown("""
     </p>
     <div style="display: flex; gap: 2rem; margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 1rem;">
         <div>
-            <div style="font-size: 0.75rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.05em;">ROC-AUC</div>
-            <div style="font-size: 1.2rem; font-weight: 600; font-family: 'Courier New';">0.87 (95% CI: 0.85-0.89)</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.05em;">ROC-AUC (Best)</div>
+            <div style="font-size: 1.2rem; font-weight: 600; font-family: 'Courier New';">0.90</div>
         </div>
         <div>
             <div style="font-size: 0.75rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.05em;">Accuracy</div>
-            <div style="font-size: 1.2rem; font-weight: 600; font-family: 'Courier New';">82.0%</div>
+            <div style="font-size: 1.2rem; font-weight: 600; font-family: 'Courier New';">84%</div>
         </div>
         <div>
             <div style="font-size: 0.75rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.05em;">Validation</div>
@@ -109,8 +109,8 @@ with st.sidebar:
         st.markdown(f"""
         **Model Type:** Random Forest Classifier  
         **Training Method:** 5-fold Cross-Validation  
-        **Sample Size:** n = 1,247  
-        **Features:** {model_info['n_features']} clinical variables
+        **Sample Size:** n = 1,064  
+        **Features:** 30+ clinical variables
         """)
     
     with st.expander("Performance Metrics", expanded=False):
@@ -150,10 +150,23 @@ with tab1:
         default_birth_weight = 2500
         default_ga = 37.0
         default_mat_age = 28
+        default_d1_formula = 10.0
+        default_d1_bm = 5.0
+        default_d2_bm = 15.0
+        default_d2_formula = 20.0
+        default_d3_bm = 25.0
+        default_d3_formula = 15.0
+        st.session_state.example_loaded = False  # Reset flag after using
     else:
         default_birth_weight = None
         default_ga = None
         default_mat_age = None
+        default_d1_formula = 0.0
+        default_d1_bm = 0.0
+        default_d2_bm = 0.0
+        default_d2_formula = 0.0
+        default_d3_bm = 0.0
+        default_d3_formula = 0.0
     
     col1, col2 = st.columns(2)
     
@@ -161,18 +174,18 @@ with tab1:
         st.markdown("#### 🍼 Feeding Data (Days 1-3)")
         unit_vol = st.radio("Volume Unit:", ["mL/cc", "fl oz"], horizontal=True, key="unit_vol")
         
-        d1_formula = st.number_input("Day 1 Formula Amount", min_value=0.0, value=0.0, step=0.1, 
+        d1_formula = st.number_input("Day 1 Formula Amount", min_value=0.0, value=default_d1_formula, step=0.1, 
                                       help="Volume of formula given on first day", key="d1_formula")
-        d1_bm = st.number_input("Day 1 Breast Milk", min_value=0.0, value=0.0, step=0.1,
+        d1_bm = st.number_input("Day 1 Breast Milk", min_value=0.0, value=default_d1_bm, step=0.1,
                                 help="Volume of mother's milk on first day", key="d1_bm")
         
-        d2_bm = st.number_input("Day 2 Breast Milk", min_value=0.0, value=0.0, step=0.1, key="d2_bm")
-        d2_formula = st.number_input("Day 2 Formula", min_value=0.0, value=0.0, step=0.1, key="d2_formula")
+        d2_bm = st.number_input("Day 2 Breast Milk", min_value=0.0, value=default_d2_bm, step=0.1, key="d2_bm")
+        d2_formula = st.number_input("Day 2 Formula", min_value=0.0, value=default_d2_formula, step=0.1, key="d2_formula")
         d2_total = d2_bm + d2_formula
         st.info(f"Day 2 Total: {d2_total:.1f} mL (auto-calculated)")
         
-        d3_bm = st.number_input("Day 3 Breast Milk", min_value=0.0, value=0.0, step=0.1, key="d3_bm")
-        d3_formula = st.number_input("Day 3 Formula", min_value=0.0, value=0.0, step=0.1, key="d3_formula")
+        d3_bm = st.number_input("Day 3 Breast Milk", min_value=0.0, value=default_d3_bm, step=0.1, key="d3_bm")
+        d3_formula = st.number_input("Day 3 Formula", min_value=0.0, value=default_d3_formula, step=0.1, key="d3_formula")
         d3_total = d3_bm + d3_formula
         st.info(f"Day 3 Total: {d3_total:.1f} mL (auto-calculated)")
         
