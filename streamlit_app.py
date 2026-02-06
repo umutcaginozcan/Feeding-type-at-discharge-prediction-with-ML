@@ -117,9 +117,10 @@ with st.sidebar:
         metrics = model_info['performance_metrics']
         st.markdown(f"""
         **ROC-AUC (Macro):** {metrics['roc_auc_macro']['mean']:.3f} ± {metrics['roc_auc_macro']['std']:.3f}  
+        **PR-AUC (Macro):** {metrics['pr_auc_macro']['mean']:.3f} ± {metrics['pr_auc_macro']['std']:.3f}  
         **Accuracy:** {metrics['accuracy']['mean']:.3f} ± {metrics['accuracy']['std']:.3f}  
-        **Precision:** {metrics['precision_macro']['mean']:.3f} ± {metrics['precision_macro']['std']:.3f}  
-        **Recall:** {metrics['recall_macro']['mean']:.3f} ± {metrics['recall_macro']['std']:.3f}
+        **Balanced Accuracy:** {metrics['balanced_accuracy']['mean']:.3f} ± {metrics['balanced_accuracy']['std']:.3f}  
+        **F1 Score (Weighted):** {metrics['f1_weighted']['mean']:.3f} ± {metrics['f1_weighted']['std']:.3f}
         """)
     
     with st.expander("Clinical Context", expanded=False):
