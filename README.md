@@ -1,10 +1,10 @@
 # 🏥 NICU Breastfeeding Prediction Calculator
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://your-app.streamlit.app)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://nicu-feeding-discharge.streamlit.app)
 
 ## 🌐 Live Web Application
 
-**Access the calculator here:** [https://your-app.streamlit.app](https://your-app.streamlit.app)
+**Access the calculator here:** [https://nicu-feeding-discharge.streamlit.app](https://nicu-feeding-discharge.streamlit.app)
 
 ![Calculator Interface](calculator_screenshot.png)
 

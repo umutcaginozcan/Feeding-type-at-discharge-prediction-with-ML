@@ -55,7 +55,7 @@ Icon
 .env.local
 
 # Model files (large binary files)
-*.pkl
+# *.pkl  # Commented out - we need trained_model.pkl for deployment
 *.joblib
 
 # Antigravity brain directory
