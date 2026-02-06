@@ -133,8 +133,16 @@ with st.sidebar:
     
     st.markdown("---")
     
+    
     # Quick fill example patient
     if st.button("📋 Load Example Patient"):
+        # Set all session_state values directly
+        st.session_state.d1_formula = 10.0
+        st.session_state.d1_bm = 5.0
+        st.session_state.d2_bm = 15.0
+        st.session_state.d2_formula = 20.0
+        st.session_state.d3_bm = 25.0
+        st.session_state.d3_formula = 15.0
         st.session_state.example_loaded = True
         st.rerun()
 
