@@ -299,6 +299,11 @@ with tab1:
     # Prediction button
     st.markdown("---")
     predict_button = st.button("🔬 Generate Prediction", type="primary", use_container_width=True)
+    
+    # Show navigation hint if prediction was made
+    if predict_button:
+        st.success("✅ Prediction generated! **Click the 'Results & Visualization' tab above to see detailed results.**")
+        st.info("💡 Tip: The Results tab shows probability charts, confidence intervals, and key contributing factors.")
 
 with tab2:
     if predict_button and model_pipeline:
@@ -512,26 +517,25 @@ with tab4:
     # Section 1: How It Works
     with st.expander("💡 How the Model Makes Predictions", expanded=True):
         st.markdown("""
-        #### Prediction Pipeline
+        #### How It Works (Simple Version)
         
-        ```
-        1️⃣ Data Collection
-           ↓ You enter patient data (some fields can be empty)
-           
-        2️⃣ Missing Value Imputation  
-           ↓ Empty fields filled with median values from 1,064 training patients
-           
-        3️⃣ Random Forest Processing
-           ↓ 449 decision trees vote on the feeding outcome
-           
-        4️⃣ Probability Calculation
-           ↓ Votes converted to probabilities for each class
-           
-        5️⃣ Final Prediction
-           → Most likely feeding type at discharge
-        ```
+        **Think of this model like a panel of 449 expert clinicians voting:**
         
-        **Key Point:** The model was trained on data from 1,064 NICU infants and validated using rigorous 5-fold cross-validation.
+        1. **You provide patient data** - Birth weight, feeding volumes, maternal info, etc.
+           - Don't worry if some fields are empty - the model fills them with typical values
+        
+        2. **The model looks for patterns** - It compares your patient to 1,064 past NICU cases
+           - "Does this baby look more like those who exclusively breastfed?"
+           - "Or more like those who needed formula?"
+        
+        3. **Each 'expert' votes** - All 449 decision trees predict the most likely outcome
+        
+        4. **Final prediction** - The majority vote wins, with a confidence percentage
+        
+        **Training & Validation:**
+        - Trained on 1,064 real NICU patients
+        - Tested separately on patients the model never saw before
+        - Achieved 83.6% accuracy on this held-out test set
         """)
     
     # Section 2: Performance Visualizations
@@ -541,15 +545,15 @@ with tab4:
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.image("outputs/model plots /Random Forest_ROC_CV.png", 
+            st.image("assets/model_plots/roc_curve.png", 
                     caption="ROC Curves: Model discriminates well between classes (AUC=0.902)")
         
         with col2:
-            st.image("outputs/model plots /Random Forest_Confusion_Matrix.png",
+            st.image("assets/model_plots/confusion_matrix.png",
                     caption="Confusion Matrix: Shows prediction accuracy per class")
         
         with col3:
-            st.image("outputs/model plots /Random Forest_Calibration_Curve.png",
+            st.image("assets/model_plots/calibration.png",
                     caption="Calibration: Predicted probabilities match actual outcomes")
     
     # Section 3: Feature Importance
@@ -560,7 +564,7 @@ with tab4:
         SHAP (SHapley Additive exPlanations) values show which features have the biggest impact on predictions.
         """)
         
-        st.image("outputs/shap plots/Fig11_SHAP_Overall.png",
+        st.image("assets/shap_plots/overall_importance.png",
                 caption="Global feature importance across all predictions")
         
         st.markdown("#### Per-Class Feature Importance")
@@ -568,15 +572,15 @@ with tab4:
         tab_ebf, tab_formula, tab_mixed = st.tabs(["Exclusive Breastfeeding", "Formula Feeding", "Mixed Feeding"])
         
         with tab_ebf:
-            st.image("outputs/shap plots/SHAP_Beeswarm_Exclusive BF.png",
+            st.image("assets/shap_plots/ebf_importance.png",
                     caption="Features that drive Exclusive Breastfeeding predictions")
         
         with tab_formula:
-            st.image("outputs/shap plots/SHAP_Beeswarm_Formula.png",
+            st.image("assets/shap_plots/formula_importance.png",
                     caption="Features that drive Formula Feeding predictions")
         
         with tab_mixed:
-            st.image("outputs/shap plots/SHAP_Beeswarm_Mixed.png",
+            st.image("assets/shap_plots/mixed_importance.png",
                     caption="Features that drive Mixed Feeding predictions")
     
     # Section 4: Clinical FAQ
