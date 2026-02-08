@@ -1,0 +1,2 @@
+predictor,chi2,p_value,dof,cramers_v,interpretation,significant
+covid19sonrasi,203.6676902811285,5.944604754018306e-45,2,0.43751228799191205,Moderate,Yes

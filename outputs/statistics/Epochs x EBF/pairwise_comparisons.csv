@@ -1,0 +1,4 @@
+Comparison,χ²,p-value,p-adjusted,Significant
+Post-COVID vs Pre-COVID + Post-BFHI,155.3659,0.000000,0.000000,Yes
+Post-COVID vs Pre-COVID + Pre-BFHI,139.7582,0.000000,0.000000,Yes
+Pre-COVID + Post-BFHI vs Pre-COVID + Pre-BFHI,3.6093,0.164532,0.493597,No
