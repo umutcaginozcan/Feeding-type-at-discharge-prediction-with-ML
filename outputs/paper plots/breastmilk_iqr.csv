@@ -1,0 +1,13 @@
+Topic,Timepoint,Epoch,EpochLabel,N,Median,Q1,Q3
+Breast milk (cc),Day 1 at NICU,0,Pre–BFHI (intro),405,8.0,1.0,40.0
+Breast milk (cc),Day 1 at NICU,1,"Post–BFHI, pre-COVID",407,4.0,0.0,30.0
+Breast milk (cc),Day 1 at NICU,2,Post-COVID,252,2.0,0.0,9.25
+Breast milk (cc),Day 2 at NICU,0,Pre–BFHI (intro),405,23.0,0.0,88.0
+Breast milk (cc),Day 2 at NICU,1,"Post–BFHI, pre-COVID",407,20.0,2.0,103.0
+Breast milk (cc),Day 2 at NICU,2,Post-COVID,252,19.0,3.0,64.0
+Breast milk (cc),Day 3 at NICU,0,Pre–BFHI (intro),405,32.0,0.0,145.0
+Breast milk (cc),Day 3 at NICU,1,"Post–BFHI, pre-COVID",407,42.0,4.0,161.5
+Breast milk (cc),Day 3 at NICU,2,Post-COVID,252,40.0,7.75,120.0
+Breast milk (cc),At discharge,0,Pre–BFHI (intro),405,50.0,0.0,280.0
+Breast milk (cc),At discharge,1,"Post–BFHI, pre-COVID",407,236.0,17.5,342.0
+Breast milk (cc),At discharge,2,Post-COVID,252,300.0,130.0,400.0

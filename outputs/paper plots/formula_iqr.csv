@@ -1,0 +1,13 @@
+Topic,Timepoint,Epoch,EpochLabel,N,Median,Q1,Q3
+Formula (cc),Day 1 at NICU,0,Pre–BFHI (intro),405,0.0,0.0,50.0
+Formula (cc),Day 1 at NICU,1,"Post–BFHI, pre-COVID",407,0.0,0.0,120.0
+Formula (cc),Day 1 at NICU,2,Post-COVID,252,136.0,24.0,187.0
+Formula (cc),Day 2 at NICU,0,Pre–BFHI (intro),405,0.0,0.0,72.0
+Formula (cc),Day 2 at NICU,1,"Post–BFHI, pre-COVID",407,0.0,0.0,80.0
+Formula (cc),Day 2 at NICU,2,Post-COVID,252,135.5,65.0,200.0
+Formula (cc),Day 3 at NICU,0,Pre–BFHI (intro),403,0.0,0.0,25.0
+Formula (cc),Day 3 at NICU,1,"Post–BFHI, pre-COVID",406,0.0,0.0,72.75
+Formula (cc),Day 3 at NICU,2,Post-COVID,252,142.1,75.0,210.0
+Formula (cc),At discharge,0,Pre–BFHI (intro),405,0.0,0.0,0.0
+Formula (cc),At discharge,1,"Post–BFHI, pre-COVID",407,0.0,0.0,0.0
+Formula (cc),At discharge,2,Post-COVID,252,90.5,0.0,220.0

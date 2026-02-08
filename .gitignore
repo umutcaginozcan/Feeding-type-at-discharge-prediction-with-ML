@@ -1,11 +1,11 @@
 # Excel files (private data)
-*.xlsx
-*.xls
-*.xlsm
-*.csv
+#*.xlsx
+#*.xls
+#*.xlsm
+#*.csv
 
 # Generated outputs (can be recreated by running Stage scripts)
-outputs/
+#outputs/
 
 # Python
 __pycache__/
@@ -64,3 +64,11 @@ Icon
 # NICU data directories (contains sensitive patient data)
 excels-NICU-breatsfeeding-data/
 excels-NICU-data/
+
+# Project organization - exclude from git
+backups/
+scripts/maintenance/
+scripts/legacy/
+*.backup
+*.backup2
+
