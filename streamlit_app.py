@@ -190,11 +190,11 @@ if 'show_results' not in st.session_state:
 
 # Main content tabs
 if st.session_state.show_results:
-    tab1, tab2, tab3 = st.tabs(["📝 Patient Data Entry", "📈 Results & Visualization", "ℹ️ About"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📝 Patient Data Entry", "📈 Results & Visualization", "ℹ️ About", "🔍 Model Explainability"])
     # Auto-select Results tab
     selected_tab = 1  # Results tab
 else:
-    tab1, tab2, tab3 = st.tabs(["📝 Patient Data Entry", "📈 Results & Visualization", "ℹ️ About"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📝 Patient Data Entry", "📈 Results & Visualization", "ℹ️ About", "🔍 Model Explainability"])
     selected_tab = 0  # Patient Data Entry tab
 
 
@@ -500,3 +500,109 @@ with tab3:
     Model ROC-AUC: 0.87 (95% CI: 0.85-0.89).
     </div>
     """, unsafe_allow_html=True)
+
+# Explainability Tab
+with tab4:
+    st.markdown("### 🔍 Model Explainability & Trust")
+    
+    st.markdown("""
+    This section provides transparency into how the model makes predictions and evidence of its performance.
+    """)
+    
+    # Section 1: How It Works
+    with st.expander("💡 How the Model Makes Predictions", expanded=True):
+        st.markdown("""
+        #### Prediction Pipeline
+        
+        ```
+        1️⃣ Data Collection
+           ↓ You enter patient data (some fields can be empty)
+           
+        2️⃣ Missing Value Imputation  
+           ↓ Empty fields filled with median values from 1,064 training patients
+           
+        3️⃣ Random Forest Processing
+           ↓ 449 decision trees vote on the feeding outcome
+           
+        4️⃣ Probability Calculation
+           ↓ Votes converted to probabilities for each class
+           
+        5️⃣ Final Prediction
+           → Most likely feeding type at discharge
+        ```
+        
+        **Key Point:** The model was trained on data from 1,064 NICU infants and validated using rigorous 5-fold cross-validation.
+        """)
+    
+    # Section 2: Performance Visualizations
+    with st.expander("📊 Model Performance Evidence", expanded=False):
+        st.markdown("#### Test Set Performance")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.image("outputs/model plots /Random Forest_ROC_CV.png", 
+                    caption="ROC Curves: Model discriminates well between classes (AUC=0.902)")
+        
+        with col2:
+            st.image("outputs/model plots /Random Forest_Confusion_Matrix.png",
+                    caption="Confusion Matrix: Shows prediction accuracy per class")
+        
+        with col3:
+            st.image("outputs/model plots /Random Forest_Calibration_Curve.png",
+                    caption="Calibration: Predicted probabilities match actual outcomes")
+    
+    # Section 3: Feature Importance
+    with st.expander("🎯 What Features Matter Most?", expanded=False):
+        st.markdown("""
+        #### Overall Feature Importance (SHAP Values)
+        
+        SHAP (SHapley Additive exPlanations) values show which features have the biggest impact on predictions.
+        """)
+        
+        st.image("outputs/shap plots/Fig11_SHAP_Overall.png",
+                caption="Global feature importance across all predictions")
+        
+        st.markdown("#### Per-Class Feature Importance")
+        
+        tab_ebf, tab_formula, tab_mixed = st.tabs(["Exclusive Breastfeeding", "Formula Feeding", "Mixed Feeding"])
+        
+        with tab_ebf:
+            st.image("outputs/shap plots/SHAP_Beeswarm_Exclusive BF.png",
+                    caption="Features that drive Exclusive Breastfeeding predictions")
+        
+        with tab_formula:
+            st.image("outputs/shap plots/SHAP_Beeswarm_Formula.png",
+                    caption="Features that drive Formula Feeding predictions")
+        
+        with tab_mixed:
+            st.image("outputs/shap plots/SHAP_Beeswarm_Mixed.png",
+                    caption="Features that drive Mixed Feeding predictions")
+    
+    # Section 4: Clinical FAQ
+    with st.expander("❓ Frequently Asked Questions", expanded=False):
+        st.markdown("""
+        #### Q: Can I trust these predictions?
+        **A:** The model achieves 83.6% accuracy on held-out test data and was rigorously validated using 5-fold cross-validation. However, it should be used as a **decision support tool**, not a replacement for clinical judgment.
+        
+        #### Q: What if I don't fill all fields?
+        **A:** The model handles missing data using median imputation - empty fields are filled with typical values from the training dataset. While you can make predictions with partial data, providing more information improves accuracy.
+        
+        #### Q: How was the model validated?
+        **A:** We used:
+        - **5-fold stratified cross-validation** to prevent overfitting
+        - **Separate test set** (never seen during training) to measure real-world performance
+        - **Class balancing** via SMOTE to handle imbalanced data
+        - **Multiple metrics** (ROC-AUC, accuracy, F1, MCC) to comprehensively evaluate performance
+        
+        #### Q: What decisions should I NOT make with this tool?
+        **A:** This tool is for **early prediction and planning support only**. Do not use it to:
+        - Replace individualized feeding assessments
+        - Override lactation consultant recommendations
+        - Make discharge decisions solely based on predictions
+        - Deny breastfeeding support to mothers
+        
+        #### Q: Who developed this model?
+        **A:** This model was developed using anonymized data from NICU patients and validated following best practices in clinical machine learning. It is intended for research and clinical decision support purposes.
+        """)
+
