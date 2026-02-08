@@ -86,16 +86,16 @@ st.markdown("""
     </p>
     <div style="display: flex; gap: 2rem; margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 1rem;">
         <div>
-            <div style="font-size: 0.75rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.05em;">ROC-AUC (Best)</div>
-            <div style="font-size: 1.2rem; font-weight: 600; font-family: 'Courier New';">0.90</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.05em;">ROC-AUC (Test)</div>
+            <div style="font-size: 1.2rem; font-weight: 600; font-family: 'Courier New';">0.902</div>
         </div>
         <div>
-            <div style="font-size: 0.75rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.05em;">Accuracy</div>
-            <div style="font-size: 1.2rem; font-weight: 600; font-family: 'Courier New';">84%</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.05em;">Accuracy (Test)</div>
+            <div style="font-size: 1.2rem; font-weight: 600; font-family: 'Courier New';">83.6%</div>
         </div>
         <div>
-            <div style="font-size: 0.75rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.05em;">Validation</div>
-            <div style="font-size: 1.2rem; font-weight: 600; font-family: 'Courier New';">5-Fold CV</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.05em;">F1-Weighted (Test)</div>
+            <div style="font-size: 1.2rem; font-weight: 600; font-family: 'Courier New';">0.831</div>
         </div>
     </div>
 </div>
@@ -114,19 +114,56 @@ with st.sidebar:
         """)
     
     with st.expander("Performance Metrics", expanded=False):
-        metrics = model_info['performance_metrics']
-        st.markdown(f"""
-        **ROC-AUC (Macro):** {metrics['roc_auc_macro']['mean']:.3f} ± {metrics['roc_auc_macro']['std']:.3f}  
-        **PR-AUC (Macro):** {metrics['pr_auc_macro']['mean']:.3f} ± {metrics['pr_auc_macro']['std']:.3f}  
-        **Accuracy:** {metrics['accuracy']['mean']:.3f} ± {metrics['accuracy']['std']:.3f}  
-        **Balanced Accuracy:** {metrics['balanced_accuracy']['mean']:.3f} ± {metrics['balanced_accuracy']['std']:.3f}  
-        **F1 Score (Weighted):** {metrics['f1_weighted']['mean']:.3f} ± {metrics['f1_weighted']['std']:.3f}
+        st.markdown("""
+        **Cross-Validation (5-Fold):**
+        
+        **ROC-AUC (Macro)**  
+        CV: 0.851 ± 0.039  
+        Folds: [0.873, 0.895, 0.857, 0.785, 0.843]  
+        **Test: 0.902** 🎯
+        
+        **PR-AUC (Macro)**  
+        CV: 0.653 ± 0.045  
+        Folds: [0.675, 0.715, 0.599, 0.604, 0.671]  
+        **Test: 0.720** 🎯
+        
+        **Accuracy**  
+        CV: 0.770 ± 0.033  
+        Folds: [0.766, 0.818, 0.759, 0.729, 0.776]  
+        **Test: 0.836** 🎯
+        
+        **F1-Score (Weighted)**  
+        CV: 0.771 ± 0.031  
+        Folds: [0.768, 0.816, 0.766, 0.729, 0.777]  
+        **Test: 0.831** 🎯
+        
+        **F1-Score (Macro)**  
+        CV: 0.626 ± 0.052  
+        Folds: [0.638, 0.683, 0.542, 0.612, 0.657]  
+        **Test: 0.653** 🎯
+        
+        **MCC (Matthews Correlation)**  
+        CV: 0.480 ± 0.069  
+        Folds: [0.475, 0.572, 0.479, 0.380, 0.495]  
+        **Test: 0.610** 🎯
+        
+        **Brier Score**  
+        **Test: 0.266** 🎯
+        
+        ---
+        *Test scores outperform CV averages, indicating good generalization.*
         """)
     
     with st.expander("Clinical Context", expanded=False):
         st.info("""
         This model predicts feeding type at discharge (Exclusive Breastfeeding, Formula, or Mixed) 
         for NICU infants based on early clinical data from days 1-3 of life.
+        
+        **Missing Value Handling:**  
+        The model uses median imputation for missing values. If you leave a field empty:
+        - Numeric fields: Replaced with the median value from training data
+        - This ensures predictions can be made even with incomplete data
+        - For best accuracy, provide as many values as possible
         
         **Note:** This tool is intended to support, not replace, clinical judgment.
         """)
@@ -146,11 +183,32 @@ with st.sidebar:
         st.session_state.example_loaded = True
         st.rerun()
 
+
+# Initialize session state for tab switching
+if 'show_results' not in st.session_state:
+    st.session_state.show_results = False
+
 # Main content tabs
-tab1, tab2, tab3 = st.tabs(["📝 Patient Data Entry", "📈 Results & Visualization", "ℹ️ About"])
+if st.session_state.show_results:
+    tab1, tab2, tab3 = st.tabs(["📝 Patient Data Entry", "📈 Results & Visualization", "ℹ️ About"])
+    # Auto-select Results tab
+    selected_tab = 1  # Results tab
+else:
+    tab1, tab2, tab3 = st.tabs(["📝 Patient Data Entry", "📈 Results & Visualization", "ℹ️ About"])
+    selected_tab = 0  # Patient Data Entry tab
+
 
 with tab1:
     st.markdown("### Patient Information")
+    
+    st.info("""
+    💡 **How Missing Values Are Handled**
+
+    You don't need to fill every field! The model can make predictions with partial data:
+    - Empty numeric fields are filled with median values from training data
+    - The more data you provide, the more accurate the prediction
+    - **Required fields:** Birth Weight, Gestational Age, Maternal Age
+    """)
     
     # Initialize form data
     if 'example_loaded' in st.session_state and st.session_state.example_loaded:
