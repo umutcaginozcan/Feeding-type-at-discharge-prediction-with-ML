@@ -271,7 +271,7 @@ flowchart LR
     E --> F[Stage 2<br/>Model Training<br/>Random Forest + SMOTE]
     F --> G[Multiple Models]
     G --> H[Stage 3-5<br/>Evaluation & Tuning<br/>5-Fold CV]
-    H --> I{Best Model<br/>ROC-AUC 0.865}
+    H --> I{Best Model<br/>ROC-AUC 0.902}
     I --> J[Stage 6<br/>Export Model]
     J --> K[trained_model.pkl]
     J --> L[feature_metadata.json]
@@ -356,54 +356,6 @@ graph TB
     style C fill:#2196F3,color:#fff
     style E fill:#FF9800,color:#fff
     style G fill:#4CAF50,color:#fff
-```
-
-### Feature Engineering Pipeline
-
-The training pipeline follows a systematic approach from raw data to production model.
-
-```mermaid
-flowchart TD
-    A[Stage 0<br/>Data Cleaning] --> A1[Remove Invalid Entries<br/>Handle Missing Values<br/>Type Conversion]
-    A1 --> A2[Output: Cleaned Dataset]
-    
-    A2 --> B[Stage 0.5<br/>Exploratory Analysis]
-    B --> B1[Statistical Summaries<br/>Distribution Analysis<br/>Missing Data Patterns]
-    
-    B1 --> C[Stage 1<br/>Feature Engineering]
-    C --> C1[Create Derived Features<br/>Encode Categories<br/>Scale Numeric Values]
-    C1 --> C2[Output: Feature Matrix<br/>30+ Variables]
-    
-    C2 --> D[Stage 2<br/>Initial Training]
-    D --> D1[Train Multiple Models<br/>Random Forest, XGBoost, etc.<br/>Handle Class Imbalance]
-    D1 --> D2[Output: Candidate Models]
-    
-    D2 --> E[Stage 2.5<br/>Feature Selection]
-    E --> E1[Importance Analysis<br/>Correlation Removal<br/>Recursive Elimination]
-    E1 --> E2[Output: Optimized Features]
-    
-    E2 --> F[Stage 3<br/>Model Evaluation]
-    F --> F1[5-Fold Cross-Validation<br/>ROC-AUC, PR-AUC<br/>Calibration Analysis]
-    F1 --> F2[Output: Performance Metrics]
-    
-    F2 --> G[Stage 4<br/>Hyperparameter Tuning]
-    G --> G1[Grid Search<br/>Random Search<br/>Bayesian Optimization]
-    G1 --> G2[Output: Best Parameters]
-    
-    G2 --> H[Stage 5<br/>Final Model Selection]
-    H --> H1[Compare All Models<br/>Select Winner<br/>Validate on Holdout]
-    H1 --> H2[Output: Final Model]
-    
-    H2 --> I[Stage 6<br/>Export for Production]
-    I --> I1[Serialize Model<br/>Create Metadata<br/>Export Performance Stats]
-    I1 --> I2[✅ trained_model.pkl<br/>✅ feature_metadata.json<br/>✅ model_info.json]
-    
-    style A fill:#9C27B0,color:#fff
-    style C fill:#3F51B5,color:#fff
-    style D fill:#2196F3,color:#fff
-    style F fill:#FF9800,color:#fff
-    style H fill:#F44336,color:#fff
-    style I2 fill:#4CAF50,color:#fff
 ```
 
 ### Directory Structure & Purposes
