@@ -9,6 +9,7 @@ This script creates publication-ready figures following Nature journal guideline
 - Professional fonts (Arial 8-10pt)
 - Statistical annotations with p-values
 - Comprehensive figure legends
+- Handles only non-empty categories
 """
 
 import pandas as pd
@@ -44,13 +45,16 @@ plt.rcParams.update({
 })
 
 # Nature colorblind-friendly palette
-NATURE_COLORS = {
-    'Formula': '#DE8F05',   # Orange - Formula
-    'Mixed': '#029E73',     # Green - Mixed
-    'Other': '#949494',     # Gray - Other
-    'sig': '#CC78BC',       # Purple - Significance markers
-    'neutral': '#4D4D4D'    # Dark Gray
+# Map by confirmed data values: 1=Exclusive BF, 2=Formula, 3=Mixed
+NATURE_COLORS_MAP = {
+    1: '#0173B2',   # Blue - Exclusive BF (category 1, n=747)
+    2: '#DE8F05',   # Orange - Formula (category 2, n=280)
+    3: '#029E73',   # Green - Mixed (category 3, n=37)
 }
+
+# For significance markers
+SIG_COLOR = '#CC78BC'  # Purple
+NEUTRAL_COLOR = '#4D4D4D'  # Dark Gray
 
 # Output directory
 import os
@@ -85,10 +89,17 @@ print(f"Working with {len(df_clean)} patients after removing missing values\n")
 # Check actual feeding categories in data
 actual_categories = sorted(df_clean[outcome].unique())
 print(f"Feeding categories in data: {actual_categories}")
+print(f"Value counts:\n{df_clean[outcome].value_counts().sort_index()}\n")
 
-# Define labels matching actual data (1=Formula, 2=Mixed, 3=Other based on value_counts)
-feeding_labels_short = {1: 'Formula', 2: 'Mixed', 3: 'Other'}
-feeding_labels_full = {1: 'Formula Feeding', 2: 'Mixed Feeding', 3: 'Other'}
+# Define labels matching CONFIRMED encoding from loader.py
+# 1 = Exclusive BF (~700 patients)
+# 2 = Formula (~200 patients)
+# 3 = Mixed (~37 patients)
+feeding_labels = {
+    1: 'Exclusive BF',
+    2: 'Formula', 
+    3: 'Mixed'
+}
 
 predictor_labels = {
     'covid19sonrasi': {0: 'Pre-COVID-19', 1: 'Post-COVID-19'},
@@ -107,23 +118,6 @@ def cramers_v(contingency_table):
     r, c = contingency_table.shape
     return np.sqrt(chi2 / (n * (min(r, c) - 1)))
 
-def add_significance_bracket(ax, x1, x2, y, p_value, height=0.02):
-    """Add significance bracket to plot"""
-    # Determine significance level
-    if p_value < 0.001:
-        sig_text = '***'
-    elif p_value < 0.01:
-        sig_text = '**'
-    elif p_value < 0.05:
-        sig_text = '*'
-    else:
-        sig_text = 'ns'
-    
-    # Draw bracket
-    ax.plot([x1, x1, x2, x2], [y, y+height, y+height, y], 
-            linewidth=1, color='black')
-    ax.text((x1+x2)/2, y+height, sig_text, ha='center', va='bottom', fontsize=9)
-
 def format_p_value(p):
     """Format p-value for display"""
     if p < 0.001:
@@ -133,204 +127,157 @@ def format_p_value(p):
     else:
         return f'p = {p:.2f}'
 
+def create_figure(pred_var, pred_name, pred_lab, figure_num, colormap_name):
+    """
+    Create publication-quality 3-panel figure
+    
+    Parameters
+    ----------
+    pred_var : str
+        Predictor variable name
+    pred_name : str
+        Full name of predictor
+    pred_lab : dict
+        Labels for predictor categories
+    figure_num : int
+        Figure number
+    colormap_name : str
+        Name of colormap for heatmap ('YlOrRd', 'Blues', 'Greens')
+    """
+    print(f"Creating Figure {figure_num}: {pred_name}...")
+    
+    # Create contingency table
+    contingency = pd.crosstab(df_clean[outcome], df_clean[pred_var])
+    
+    # Apply labels
+    contingency.index = [feeding_labels[i] for i in contingency.index]
+    contingency.columns = [pred_lab[i] for i in contingency.columns]
+    
+    # Calculate statistics
+    chi2, p_value, dof, expected = chi2_contingency(contingency)
+    v = cramers_v(contingency)
+    
+    # Calculate proportions
+    props = contingency.div(contingency.sum(axis=0), axis=1) * 100
+    
+    # Get colors for available feeding types (in order they appear)
+    feeding_colors = [NATURE_COLORS_MAP[cat] for cat in sorted(df_clean[outcome].unique())]
+    
+    # Create figure with 3 panels
+    fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+    fig.suptitle(f'Figure {figure_num}. Feeding Outcomes by {pred_name}', 
+                 fontweight='bold', y=1.02)
+    
+    # Panel A: Observed frequencies heatmap
+    ax = axes[0]
+    # Draw heatmap WITHOUT annotations first
+    sns.heatmap(contingency, annot=False, fmt='d', cmap=colormap_name, 
+                ax=ax, cbar_kws={'label': 'Count'}, linewidths=0.5,
+                linecolor='white', square=False, vmin=0)
+    
+    # Manually add text annotations to ensure visibility
+    for i in range(len(contingency.index)):
+        for j in range(len(contingency.columns)):
+            value = contingency.iloc[i, j]
+            ax.text(j + 0.5, i + 0.5, str(int(value)),
+                   ha='center', va='center',
+                   fontsize=11, fontweight='bold',
+                   color='white' if value > contingency.max().max() * 0.6 else 'black')
+    
+    ax.set_title('A. Observed Frequencies', fontweight='bold', pad=10)
+    ax.set_xlabel('Time Period')
+    ax.set_ylabel('Feeding Type at Discharge')
+    
+    # Panel B: Stacked proportions
+    ax = axes[1]
+    x = np.arange(len(contingency.columns))
+    width = 0.6
+    bottom = np.zeros(len(contingency.columns))
+    
+    for idx, (feeding_type, row) in enumerate(props.iterrows()):
+        ax.bar(x, row, width, bottom=bottom, label=feeding_type, 
+               color=feeding_colors[idx], edgecolor='white', linewidth=0.8)
+        
+        # Add percentage labels
+        for i, val in enumerate(row):
+            if val > 5:  # Only show if segment is large enough
+                ax.text(x[i], bottom[i] + val/2, f'{val:.1f}%', 
+                       ha='center', va='center', fontsize=8, color='white',
+                       fontweight='bold')
+        
+        bottom += row
+    
+    ax.set_title('B. Feeding Distribution (%)', fontweight='bold', pad=10)
+    ax.set_xlabel('Time Period')
+    ax.set_ylabel('Percentage (%)')
+    ax.set_xticks(x)
+    ax.set_xticklabels(contingency.columns, rotation=0)
+    ax.set_ylim(0, 100)
+    ax.legend(title='Feeding Type', frameon=True, fancybox=False, edgecolor='black')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    
+    # Panel C: Grouped bar chart by feeding type
+    ax = axes[2]
+    x = np.arange(len(props.index))
+    n_periods = len(props.columns)
+    width = 0.8 / n_periods
+    
+    bars_list = []
+    for i, col in enumerate(props.columns):
+        offset = (i - n_periods/2 + 0.5) * width
+        bars = ax.bar(x + offset, props[col], width, 
+                     label=col, color=SIG_COLOR if i == 1 else NEUTRAL_COLOR,
+                     edgecolor='black', linewidth=0.8)
+        bars_list.append(bars)
+        
+        # Add value labels
+        for bar in bars:
+            height = bar.get_height()
+            if height > 0:
+                ax.text(bar.get_x() + bar.get_width()/2., height,
+                        f'{height:.1f}%', ha='center', va='bottom', fontsize=8)
+    
+    ax.set_title(f'C. Time Period Distribution\n{format_p_value(p_value)}, Cramér\'s V = {v:.3f}', 
+                 fontweight='bold', pad=10, fontsize=10)
+    ax.set_xlabel('Feeding Type at Discharge')
+    ax.set_ylabel('Percentage (%)')
+    ax.set_xticks(x)
+    ax.set_xticklabels(props.index, rotation=0)
+    ax.legend(title='Time Period', frameon=True, fancybox=False, edgecolor='black')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    
+    plt.tight_layout()
+    plt.savefig(f"{output_dir}/Figure_{figure_num}.png", dpi=600, bbox_inches='tight')
+    print(f"✓ Saved: Figure_{figure_num}.png")
+    plt.close()
+    
+    return chi2, p_value, v
+
 # ============================================================================
 # FIGURE 1: COVID-19 PERIOD ANALYSIS
 # ============================================================================
 
-print("Creating Figure 1: COVID-19 Period Analysis...")
-
-pred_var = 'covid19sonrasi'
-pred_name = predictors[pred_var]
-pred_lab = predictor_labels[pred_var]
-
-# Create contingency table
-contingency = pd.crosstab(df_clean[outcome], df_clean[pred_var])
-contingency.index = [feeding_labels_short[i] for i in contingency.index]
-contingency.columns = [pred_lab[i] for i in contingency.columns]
-
-# Calculate statistics
-chi2, p_value, dof, expected = chi2_contingency(contingency)
-v = cramers_v(contingency)
-
-# Calculate proportions
-props = contingency.div(contingency.sum(axis=0), axis=1) * 100
-
-# Create figure with 3 panels
-fig, axes = plt.subplots(1, 3, figsize=(12, 4))
-fig.suptitle('Figure 1. Feeding Outcomes by COVID-19 Period', 
-             fontweight='bold', y=1.02)
-
-# Panel A: Observed frequencies heatmap
-ax = axes[0]
-sns.heatmap(contingency, annot=True, fmt='d', cmap='YlOrRd', 
-            ax=ax, cbar_kws={'label': 'Count'}, linewidths=0.5,
-            linecolor='white', square=True)
-ax.set_title('A. Observed Frequencies', fontweight='bold', pad=10)
-ax.set_xlabel('Time Period')
-ax.set_ylabel('Feeding Type at Discharge')
-
-# Panel B: Stacked proportions
-ax = axes[1]
-x = np.arange(len(contingency.columns))
-width = 0.6
-bottom = np.zeros(len(contingency.columns))
-
-colors = [NATURE_COLORS['Formula'], NATURE_COLORS['Mixed'], NATURE_COLORS['Other']]
-
-for idx, (feeding_type, row) in enumerate(props.iterrows()):
-    ax.bar(x, row, width, bottom=bottom, label=feeding_type, 
-           color=colors[idx], edgecolor='white', linewidth=0.8)
-    
-    # Add percentage labels
-    for i, val in enumerate(row):
-        if val > 5:  # Only show if segment is large enough
-            ax.text(x[i], bottom[i] + val/2, f'{val:.1f}%', 
-                   ha='center', va='center', fontsize=8, color='white',
-                   fontweight='bold')
-    
-    bottom += row
-
-ax.set_title('B. Feeding Distribution (%)', fontweight='bold', pad=10)
-ax.set_xlabel('Time Period')
-ax.set_ylabel('Percentage (%)')
-ax.set_xticks(x)
-ax.set_xticklabels(contingency.columns, rotation=0)
-ax.set_ylim(0, 100)
-ax.legend(title='Feeding Type', frameon=True, fancybox=False, edgecolor='black')
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-
-# Panel C: Grouped bar chart by feeding type
-ax = axes[2]
-x = np.arange(len(props.index))
-width = 0.35
-
-bars1 = ax.bar(x - width/2, props.iloc[:, 0], width, 
-               label=contingency.columns[0], color=NATURE_COLORS['neutral'],
-               edgecolor='black', linewidth=0.8)
-bars2 = ax.bar(x + width/2, props.iloc[:, 1], width,
-               label=contingency.columns[1], color=NATURE_COLORS['sig'],
-               edgecolor='black', linewidth=0.8)
-
-ax.set_title(f'C. Time Period Distribution\n{format_p_value(p_value)}, Cramér\'s V = {v:.3f}', 
-             fontweight='bold', pad=10, fontsize=10)
-ax.set_xlabel('Feeding Type at Discharge')
-ax.set_ylabel('Percentage (%)')
-ax.set_xticks(x)
-ax.set_xticklabels(props.index, rotation=0)
-ax.legend(title='Time Period', frameon=True, fancybox=False, edgecolor='black')
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-
-# Add value labels on bars
-for bars in [bars1, bars2]:
-    for bar in bars:
-        height = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2., height,
-                f'{height:.1f}%', ha='center', va='bottom', fontsize=8)
-
-plt.tight_layout()
-plt.savefig(f"{output_dir}/Figure_1.png", dpi=600, bbox_inches='tight')
-print(f"✓ Saved: Figure_1.png")
-plt.close()
+chi2_1, p_1, v_1 = create_figure(
+    'covid19sonrasi',
+    predictors['covid19sonrasi'],
+    predictor_labels['covid19sonrasi'],
+    1,
+    'YlOrRd'
+)
 
 # ============================================================================
 # FIGURE 2: BABY-FRIENDLY HOSPITAL INITIATIVE
 # ============================================================================
 
-print("Creating Figure 2: Baby-Friendly Hospital Initiative...")
-
-pred_var = 'bebek_dostu_20temmuz2018'
-pred_name = predictors[pred_var]
-pred_lab = predictor_labels[pred_var]
-
-# Create contingency table
-contingency = pd.crosstab(df_clean[outcome], df_clean[pred_var])
-contingency.index = [feeding_labels_short[i] for i in contingency.index]
-contingency.columns = [pred_lab[i] for i in contingency.columns]
-
-# Calculate statistics
-chi2, p_value, dof, expected = chi2_contingency(contingency)
-v = cramers_v(contingency)
-
-# Calculate proportions
-props = contingency.div(contingency.sum(axis=0), axis=1) * 100
-
-# Create figure
-fig, axes = plt.subplots(1, 3, figsize=(12, 4))
-fig.suptitle('Figure 2. Feeding Outcomes by Baby-Friendly Hospital Initiative', 
-             fontweight='bold', y=1.02)
-
-# Panel A: Observed frequencies
-ax = axes[0]
-sns.heatmap(contingency, annot=True, fmt='d', cmap='Blues', 
-            ax=ax, cbar_kws={'label': 'Count'}, linewidths=0.5,
-            linecolor='white', square=True)
-ax.set_title('A. Observed Frequencies', fontweight='bold', pad=10)
-ax.set_xlabel('BFHI Period')
-ax.set_ylabel('Feeding Type at Discharge')
-
-# Panel B: Stacked proportions
-ax = axes[1]
-x = np.arange(len(contingency.columns))
-width = 0.6
-bottom = np.zeros(len(contingency.columns))
-
-for idx, (feeding_type, row) in enumerate(props.iterrows()):
-    ax.bar(x, row, width, bottom=bottom, label=feeding_type, 
-           color=colors[idx], edgecolor='white', linewidth=0.8)
-    
-    for i, val in enumerate(row):
-        if val > 5:
-            ax.text(x[i], bottom[i] + val/2, f'{val:.1f}%', 
-                   ha='center', va='center', fontsize=8, color='white',
-                   fontweight='bold')
-    
-    bottom += row
-
-ax.set_title('B. Feeding Distribution (%)', fontweight='bold', pad=10)
-ax.set_xlabel('BFHI Period')
-ax.set_ylabel('Percentage (%)')
-ax.set_xticks(x)
-ax.set_xticklabels(contingency.columns, rotation=0)
-ax.set_ylim(0, 100)
-ax.legend(title='Feeding Type', frameon=True, fancybox=False, edgecolor='black')
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-
-# Panel C: Grouped bar chart
-ax = axes[2]
-x = np.arange(len(props.index))
-width = 0.35
-
-bars1 = ax.bar(x - width/2, props.iloc[:, 0], width, 
-               label=contingency.columns[0], color=NATURE_COLORS['neutral'],
-               edgecolor='black', linewidth=0.8)
-bars2 = ax.bar(x + width/2, props.iloc[:, 1], width,
-               label=contingency.columns[1], color=NATURE_COLORS['Formula'],
-               edgecolor='black', linewidth=0.8)
-
-ax.set_title(f'C. BFHI Period Distribution\n{format_p_value(p_value)}, Cramér\'s V = {v:.3f}', 
-             fontweight='bold', pad=10, fontsize=10)
-ax.set_xlabel('Feeding Type at Discharge')
-ax.set_ylabel('Percentage (%)')
-ax.set_xticks(x)
-ax.set_xticklabels(props.index, rotation=0)
-ax.legend(title='BFHI Period', frameon=True, fancybox=False, edgecolor='black',
-         loc='upper right')
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-
-for bars in [bars1, bars2]:
-    for bar in bars:
-        height = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2., height,
-                f'{height:.1f}%', ha='center', va='bottom', fontsize=8)
-
-plt.tight_layout()
-plt.savefig(f"{output_dir}/Figure_2.png", dpi=600, bbox_inches='tight')
-print(f"✓ Saved: Figure_2.png")
-plt.close()
+chi2_2, p_2, v_2 = create_figure(
+    'bebek_dostu_20temmuz2018',
+    predictors['bebek_dostu_20temmuz2018'],
+    predictor_labels['bebek_dostu_20temmuz2018'],
+    2,
+    'Blues'
+)
 
 # ============================================================================
 # FIGURE 3: COMBINED EPOCHS ANALYSIS
@@ -344,14 +291,7 @@ pred_lab = predictor_labels[pred_var]
 
 # Create contingency table
 contingency = pd.crosstab(df_clean[outcome], df_clean[pred_var])
-
-# Handle missing EBF category - check what categories exist
-existing_feeding_types = contingency.index.tolist()
-print(f"  Note: Available feeding types in data: {existing_feeding_types}")
-
-# Use only available categories
-available_labels = {k: v for k, v in feeding_labels_short.items() if k in existing_feeding_types}
-contingency.index = [available_labels[i] for i in contingency.index]
+contingency.index = [feeding_labels[i] for i in contingency.index]
 contingency.columns = [pred_lab[i] for i in contingency.columns]
 
 # Calculate statistics
@@ -379,6 +319,9 @@ for i in range(len(epochs)):
             'sig': p_adjusted < 0.05
         })
 
+# Get colors for available feeding types
+feeding_colors = [NATURE_COLORS_MAP[cat] for cat in sorted(df_clean[outcome].unique())]
+
 # Create figure
 fig = plt.figure(figsize=(14, 10))
 gs = fig.add_gridspec(2, 2, hspace=0.3, wspace=0.3)
@@ -388,9 +331,20 @@ fig.suptitle('Figure 3. Feeding Outcomes by Time Epoch (COVID-19 × BFHI)',
 
 # Panel A: Heatmap of observed frequencies
 ax1 = fig.add_subplot(gs[0, 0])
-sns.heatmap(contingency, annot=True, fmt='d', cmap='Greens', 
+# Draw heatmap WITHOUT annotations first
+sns.heatmap(contingency, annot=False, fmt='d', cmap='Greens', 
             ax=ax1, cbar_kws={'label': 'Count'}, linewidths=0.5,
-            linecolor='white', square=False)
+            linecolor='white', square=False, vmin=0)
+
+# Manually add text annotations
+for i in range(len(contingency.index)):
+    for j in range(len(contingency.columns)):
+        value = contingency.iloc[i, j]
+        ax1.text(j + 0.5, i + 0.5, str(int(value)),
+                ha='center', va='center',
+                fontsize=11, fontweight='bold',
+                color='white' if value > contingency.max().max() * 0.6 else 'black')
+
 ax1.set_title('A. Observed Frequencies', fontweight='bold', pad=10)
 ax1.set_xlabel('Time Epoch')
 ax1.set_ylabel('Feeding Type at Discharge')
@@ -402,12 +356,9 @@ x = np.arange(len(contingency.columns))
 width = 0.65
 bottom = np.zeros(len(contingency.columns))
 
-# Use colors for all available feeding types
-available_colors = [NATURE_COLORS['Formula'], NATURE_COLORS['Mixed'], NATURE_COLORS['Other']]
-
 for idx, (feeding_type, row) in enumerate(props.iterrows()):
     ax2.bar(x, row, width, bottom=bottom, label=feeding_type, 
-           color=available_colors[idx], edgecolor='white', linewidth=0.8)
+           color=feeding_colors[idx], edgecolor='white', linewidth=0.8)
     
     for i, val in enumerate(row):
         if val > 4:
@@ -428,43 +379,39 @@ ax2.legend(title='Feeding Type', frameon=True, fancybox=False, edgecolor='black'
 ax2.spines['top'].set_visible(False)
 ax2.spines['right'].set_visible(False)
 
-# Panel C: Grouped bar chart - Formula feeding across epochs
+# Panel C: Grouped bar chart across epochs
 ax3 = fig.add_subplot(gs[1, 0])
-formula_props = props.loc['Formula'] if 'Formula' in props.index else props.iloc[0]
-mixed_props = props.loc['Mixed'] if 'Mixed' in props.index else props.iloc[1]
+x_pos = np.arange(len(contingency.columns))
+width = 0.25
+n_feeding_types = len(props.index)
 
-x = np.arange(len(contingency.columns))
-width = 0.35
-
-bars1 = ax3.bar(x - width/2, formula_props, width, 
-               label='Formula', color=NATURE_COLORS['Formula'],
-               edgecolor='black', linewidth=0.8)
-bars2 = ax3.bar(x + width/2, mixed_props, width,
-               label='Mixed', color=NATURE_COLORS['Mixed'],
-               edgecolor='black', linewidth=0.8)
-
-ax3.set_title('C. Feeding Type Comparison Across Epochs', fontweight='bold', pad=10)
-ax3.set_xlabel('Time Epoch')
-ax3.set_ylabel('Percentage (%)')
-ax3.set_xticks(x)
-ax3.set_xticklabels(contingency.columns, rotation=15, ha='right')
-ax3.legend(frameon=True, fancybox=False, edgecolor='black')
-ax3.spines['top'].set_visible(False)
-ax3.spines['right'].set_visible(False)
-
-for bars in [bars1, bars2]:
+for idx, feeding_type in enumerate(props.index):
+    offset = (idx - n_feeding_types/2 + 0.5) * width
+    values = props.loc[feeding_type]
+    bars = ax3.bar(x_pos + offset, values, width,
+                  label=feeding_type, color=feeding_colors[idx],
+                  edgecolor='black', linewidth=0.8)
+    
     for bar in bars:
         height = bar.get_height()
         if height > 0:
             ax3.text(bar.get_x() + bar.get_width()/2., height,
-                    f'{height:.1f}%', ha='center', va='bottom', fontsize=8)
+                    f'{height:.0f}%', ha='center', va='bottom', fontsize=7)
+
+ax3.set_title('C. Feeding Type Comparison Across Epochs', fontweight='bold', pad=10)
+ax3.set_xlabel('Time Epoch')
+ax3.set_ylabel('Percentage (%)')
+ax3.set_xticks(x_pos)
+ax3.set_xticklabels(contingency.columns, rotation=15, ha='right')
+ax3.legend(title='Feeding Type', frameon=True, fancybox=False, edgecolor='black')
+ax3.spines['top'].set_visible(False)
+ax3.spines['right'].set_visible(False)
 
 # Panel D: Pairwise comparisons
 ax4 = fig.add_subplot(gs[1, 1])
 comparisons = [r['comparison'] for r in pairwise_results]
 p_values = [-np.log10(r['p_adj']) for r in pairwise_results]
-colors_sig = [NATURE_COLORS['sig'] if r['sig'] else NATURE_COLORS['neutral'] 
-              for r in pairwise_results]
+colors_sig = [SIG_COLOR if r['sig'] else NEUTRAL_COLOR for r in pairwise_results]
 
 bars = ax4.barh(comparisons, p_values, color=colors_sig, edgecolor='black', linewidth=0.8)
 ax4.axvline(-np.log10(0.05), color='red', linestyle='--', linewidth=1, 
@@ -477,16 +424,16 @@ ax4.legend(frameon=True, fancybox=False, edgecolor='black', loc='lower right')
 
 # Add p-value labels
 for idx, (bar, result) in enumerate(zip(bars, pairwise_results)):
-    width = bar.get_width()
+    width_val = bar.get_width()
     label = f"p_adj = {result['p_adj']:.4f}" if result['p_adj'] >= 0.001 else "p_adj < 0.001"
-    ax4.text(width + 0.1, idx, label, ha='left', va='center', fontsize=8)
+    ax4.text(width_val + 0.1, idx, label, ha='left', va='center', fontsize=8)
 
 plt.savefig(f"{output_dir}/Figure_3.png", dpi=600, bbox_inches='tight')
 print(f"✓ Saved: Figure_3.png")
 plt.close()
 
 # ============================================================================
-# CREATE METHODOLOGY FILE
+# SUMMARY
 # ============================================================================
 
 print("\n" + "=" * 80)
@@ -494,11 +441,15 @@ print("✓ All publication figures created successfully!")
 print("=" * 80)
 print(f"\nOutputs saved to: {output_dir}/")
 print("  - Figure_1.png: COVID-19 Period Analysis")
+print(f"    χ² = {chi2_1:.2f}, p {format_p_value(p_1)}, V = {v_1:.3f}")
 print("  - Figure_2.png: Baby-Friendly Hospital Initiative")
+print(f"    χ² = {chi2_2:.2f}, p = {format_p_value(p_2)}, V = {v_2:.3f}")
 print("  - Figure_3.png: Combined Epochs Analysis")
+print(f"    χ² = {chi2:.2f}, p = {format_p_value(p_value)}, V = {v:.3f}")
 print("\nFigure specifications:")
 print("  - Resolution: 600 DPI (publication-ready)")
 print("  - Color scheme: Colorblind-friendly Nature palette")
 print("  - Font: Arial 8-10pt")
-print("  - Format: PNG with transparent background option")
+print("  - Only non-empty categories shown")
+print("  - Statistical annotations included")
 print("\n" + "=" * 80)

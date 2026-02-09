@@ -21,10 +21,9 @@ DATA_PATH = Path('excels-NICU-breatsfeeding-data/nicu_stage0_5_cleaned.xlsx')
 
 CAT_LABELS_EN: Dict[str, Dict[Any, str]] = {
     "taburculuk_beslenmeturu": {
-        0: "Exclusive BF",
-        1: "Formula", 
-        2: "Mixed",
-        3: "Other"
+        1: "Exclusive BF",
+        2: "Formula", 
+        3: "Mixed"
     },
     "tanı_gruplu": {
         1: "Prematurity",
