@@ -293,7 +293,12 @@ NUMERIC_COLS: List[str] = [
 # ============================================================================
 
 RENAME_FOR_PLOT: Dict[str, str] = {
+    # Primary outcome
     "taburculuk_beslenmeturu": "Feeding type at discharge",
+    # Infant characteristics
+    "tanı_gruplu": "Diagnosis (grouped)",
+    "dogum_agırlıgı_gruplu": "Birth weight (grouped)",
+    "gebelik_haftası_gruplu": "Gestational age (grouped)",
     "dogumagirligi(gram)": "Birth weight (g)",
     "takipilkgün_kilo_gram": "Weight on first follow-up day (g)",
     "kilo1.gun": "Weight on Day 1 (g)",
@@ -315,10 +320,102 @@ RENAME_FOR_PLOT: Dict[str, str] = {
     "aldıgımamamiktari3.gun": "Formula intake on Day 3 (cc)",
     "aldıgıannesütü3.gun": "Breast milk intake on Day 3 (cc)",
     "sutdestegivarsakacolcek": "Lactation support volume (cc)",
+    # Discharge feeding variables
+    "taburculuktamamamiktari": "Formula intake at discharge (cc)",
+    "taburculukta_annesutu_111": "Breast milk present at discharge",
+    "Ataburculuktaannesutu": "Breast milk at discharge (binary)",
+    "taburculuktanasılbeslenmeyolu": "Feeding route at discharge",
+    "emzirme_Taburculuk": "Breastfeeding at discharge",
+    "aldığıannesütü_taburculuk": "Breast milk volume at discharge (cc)",
+    "beslenmetotalitaburculuk": "Total feeding volume at discharge (cc)",
+    "taburculuktaogvarmiyokmu": "Orogastric tube at discharge",
+    
+    # Day 1 feeding variables
+    "ilk_gün_anne_sütü_1111": "Breast milk present on Day 1",
+    "ilkgün_bebeğinannesütüalımı": "Breast milk intake on Day 1 (binary)",
+    "ilk_gün_emzirme_111": "Breastfeeding on Day 1",
+    "beslenmeninilkgunuverilisyolu": "Initial feeding route on Day 1",
+    
+    # Day 2-3 feeding routes
+    "verilisyolu2.gun": "Feeding route on Day 2",
+    "verilisyolu3gun": "Feeding route on Day 3",
+    
+    # Lactation support variables
+    "annesutuemzirmeeğitimidurumu": "Lactation education status",
+    "baslangictasutdestegi": "Lactation support at initiation",
+    "sutdestegivarsakacolcek": "Lactation support volume (cc)",
+    "varsataburculuktakaçölçek": "Lactation support at discharge (servings)",
+    "kacıncıgundesutdestegibaslandı": "Day lactation support initiated",
+    "taburculuktadestekcesidi": "Type of lactation support at discharge",
+    "taburculukrtasutdestegivarmı": "Lactation support present at discharge",
+    
+    # Breast pump variables
+    "Kullandıgıpompamarkasi": "Breast pump brand",
+    "Kullandıgpompatipi": "Breast pump type",
+    
+    # Colostrum and breast problems
+    "Kolostrumvarligi": "Colostrum present",
+    "memesorunuyaşamadurumu": "Breast problem experienced",
+    "memesorunuvarsa_tedavidekullanılanlar": "Breast problem treatment",
+    "galaktokogkullanımı": "Galactagogue use",
+    
+    # Birth and infant characteristics
+    "dogumyeri": "Place of birth",
+    "dogumsekli": "Delivery method",
+    "kacgunogkullandi": "Days of orogastric tube use",
+    
+    # Maternal variables
+    "emzirdigicocuksayisi": "Number of previously breastfed children",
+    "bironcekibebegikacayemzirdi": "Breastfeeding duration of previous child (months)",
+    "yasayancocuksayisi": "Number of living children",
+    "anne_hastalık_grup": "Maternal medical condition (grouped)",
+    "anne_egitim_grup": "Maternal education (grouped)",
+    "anneegitim": "Maternal education level",
+    "anne_yaşı_grup": "Maternal age (grouped)",
+    "anne_meslek_grup": "Maternal occupation (grouped)",
+    "annemeslegi": "Maternal occupation",
+    "bebekdostuoncesonra": "Baby-Friendly status (binary)",
+    "gebeliktipi": "Pregnancy type",
+    "gebelik_tipi_gruplu": "Pregnancy type (grouped)",
+    "gebelik_34": "Gestational age category",
+    
+    # Postnatal timing
+    "pntaburculuktarihi": "Postnatal discharge date (days)",
+    "pntakibegirdigitarih": "Postnatal admission date (days)",
+    "Postnatalgunemzirme": "Postnatal day of breastfeeding initiation",
+    "takiptekacgun": "Days in follow-up",
+    
     # Epoch and COVID variables
     "ikisiarası": "Epoch (COVID × BFHI)",
     "covid19sonrasi": "COVID-19 Period",
     "bebek_dostu_20temmuz2018": "Baby-Friendly Hospital Initiative",
+    
+    # Engineered features
+    "eng_weight_per_week": "Weight gain per week (g/week)",
+    "eng_elbw_flag": "Extremely low birth weight (<1000g)",
+    "eng_very_preterm": "Very preterm (<32 weeks)",
+    "eng_delta_vol_d1_d2": "Volume change Day 1→2 (cc)",
+    "eng_delta_vol_d2_d3": "Volume change Day 2→3 (cc)",
+    "eng_resilience_index": "Feeding resilience index",
+    "eng_bm_ratio_d1": "Breast milk ratio on Day 1",
+    "eng_bm_ratio_d2": "Breast milk ratio on Day 2",
+    "eng_bm_ratio_d3": "Breast milk ratio on Day 3",
+    "eng_lactation_momentum": "Lactation momentum score",
+    "eng_severity_score": "Clinical severity score",
+    "eng_neuro_barrier": "Neurological barrier to feeding",
+    "eng_mat_healthcare_pro": "Maternal healthcare professional",
+    "eng_mat_age_risk": "Maternal age risk category",
+    "eng_pump_used": "Breast pump utilized",
+    "eng_galactagogue": "Galactagogue used",
+    "eng_tube_d1": "Tube feeding on Day 1",
+    "eng_tube_d2": "Tube feeding on Day 2",
+    "eng_tube_d3": "Tube feeding on Day 3",
+    "eng_weaning_success": "Successful weaning from tube",
+    
+    # Variable codes
+    "VAR00002": "Gestational age category (detailed)",
+    "VAR00004": "Gestational age groups",
+    "VAR00003": "Additional variable 3",
 }
 
 # List of all categorical columns
