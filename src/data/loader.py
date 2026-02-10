@@ -58,12 +58,12 @@ CAT_LABELS_EN: Dict[str, Dict[Any, str]] = {
         1: "After July 20, 2018"
     },
     "cinsiyeti": {
-        1: "Female", 
-        2: "Male"
+        0: "Female", 
+        1: "Male"
     },
     "gebelik_tipi_gruplu": {
-        1: "Singleton", 
-        2: "Multiple"
+        0: "Singleton", 
+        1: "Multiple"
     },
     "gebeliktipi": {
         1: "Singleton", 
@@ -117,8 +117,8 @@ CAT_LABELS_EN: Dict[str, Dict[Any, str]] = {
         7: "Graduate+"
     },
     "dogumsekli": {
-        1: "Vaginal delivery", 
-        2: "Cesarean section"
+        0: "Vaginal delivery", 
+        1: "Cesarean section"
     },
     "anne_hastalık_grup": {
         0: "None", 
@@ -186,7 +186,8 @@ CAT_LABELS_EN: Dict[str, Dict[Any, str]] = {
         5: "Breastfeeding + PO", 
         6: "Breastfeeding + OG",
         7: "Bottle feeding", 
-        8: "Bottle + Breastfeeding"
+        8: "Bottle + Breastfeeding",
+        " ": "None"  # Data entry as space for missing
     },
     "verilisyolu3gun": {
         0: "None", 
@@ -208,7 +209,9 @@ CAT_LABELS_EN: Dict[str, Dict[Any, str]] = {
         2: "Breast milk + Formula", 
         3: "Formula",
         4: "Specialized formula", 
-        5: "Breast milk + Specialized formula"
+        5: "Breast milk + Specialized formula",
+        6: "Formula + Specialized formula",
+        8: "Other combination"
     },
     "taburculuktaogvarmiyokmu": {
         0: "Absent", 
@@ -219,6 +222,7 @@ CAT_LABELS_EN: Dict[str, Dict[Any, str]] = {
         1: "Present"
     },
     "taburculuktadestekcesidi": {
+        0: "None",
         1: "Euproten", 
         2: "Supplement", 
         3: "Euproten + Supplement", 
@@ -237,6 +241,7 @@ CAT_LABELS_EN: Dict[str, Dict[Any, str]] = {
         1: "Present"
     },
     "memesorunuvarsa_tedavidekullanılanlar": {
+        0: "None",
         1: "Massage", 
         2: "Hand expression", 
         3: "General surgery consult",
@@ -245,7 +250,8 @@ CAT_LABELS_EN: Dict[str, Dict[Any, str]] = {
     },
     "taburculukrtasutdestegivarmı": {
         0: "Absent", 
-        1: "Present"
+        1: "Present",
+        " ": "Unknown"  # Data entry as space for missing
     },
     "Ataburculuktaannesutu": {
         0: "Absent", 

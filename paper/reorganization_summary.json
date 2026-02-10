@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-02-10T20:32:59.048185",
+  "created_directories": [
+    "paper/statistics",
+    "paper/figures/data",
+    "paper/analyses"
+  ],
+  "moves": [
+    {
+      "source": "outputs/statistics/Epochs_x_EBF",
+      "destination": "paper/statistics/epochs_x_ebf",
+      "type": "folder"
+    },
+    {
+      "source": "outputs/statistics/Epochs x EBF",
+      "destination": "paper/statistics/epochs_x_ebf_v2",
+      "type": "folder"
+    },
+    {
+      "source": "outputs/statistics/Epochs x Feeding",
+      "destination": "paper/statistics/epochs_x_feeding",
+      "type": "folder"
+    },
+    {
+      "source": "outputs/statistics/Epochs x Length of Stay",
+      "destination": "paper/statistics/epochs_x_los",
+      "type": "folder"
+    },
+    {
+      "source": "outputs/statistics/M.Age x EBF",
+      "destination": "paper/statistics/maternal_age_x_ebf",
+      "type": "folder"
+    },
+    {
+      "source": "outputs/statistics/M.Education x EBF",
+      "destination": "paper/statistics/maternal_education_x_ebf",
+      "type": "folder"
+    },
+    {
+      "source": "outputs/statistics/M.Occupation x EBF",
+      "destination": "paper/statistics/maternal_occupation_x_ebf",
+      "type": "folder"
+    },
+    {
+      "source": "outputs/statistics/Education x Epochs",
+      "destination": "paper/statistics/education_x_epochs",
+      "type": "folder"
+    },
+    {
+      "source": "outputs/statistics/ROC curves",
+      "destination": "paper/statistics/roc_curves",
+      "type": "folder"
+    },
+    {
+      "source": "outputs/paper plots/bw-median-final.png",
+      "destination": "paper/figures/birthweight_by_feeding.png",
+      "type": "file"
+    },
+    {
+      "source": "outputs/paper plots/mm-median-final.png",
+      "destination": "paper/figures/breastmilk_by_feeding.png",
+      "type": "file"
+    },
+    {
+      "source": "outputs/paper plots/f-med_only-final.png",
+      "destination": "paper/figures/formula_by_feeding.png",
+      "type": "file"
+    },
+    {
+      "source": "outputs/paper plots/breastmilk_iqr.csv",
+      "destination": "paper/figures/data/breastmilk_iqr.csv",
+      "type": "file"
+    },
+    {
+      "source": "outputs/paper plots/formula_iqr.csv",
+      "destination": "paper/figures/data/formula_iqr.csv",
+      "type": "file"
+    },
+    {
+      "source": "outputs/paper plots/weight_iqr.csv",
+      "destination": "paper/figures/data/weight_iqr.csv",
+      "type": "file"
+    },
+    {
+      "source": "analyses/01_epochs_ebf",
+      "destination": "paper/analyses/epochs_ebf",
+      "type": "folder"
+    }
+  ],
+  "errors": []
+}
