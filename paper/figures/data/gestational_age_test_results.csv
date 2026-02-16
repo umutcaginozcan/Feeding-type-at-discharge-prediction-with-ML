@@ -1,0 +1,5 @@
+Test,Statistic,p-value,Interpretation
+One-way ANOVA,"F(2,1061)=1.251",0.2867,Not significant
+Kruskal-Wallis,H=1.895,0.3878,Not significant
+Levene (variance),F=5.943,0.0027,Unequal variances
+Effect size (η²),0.0024,N/A,Negligible
