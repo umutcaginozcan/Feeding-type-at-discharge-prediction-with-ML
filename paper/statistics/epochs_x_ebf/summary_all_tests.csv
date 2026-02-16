@@ -1,4 +1,0 @@
-predictor,variable,chi2,p_value,cramers_v,interpretation,significant
-Epoch (COVID × BFHI),ikisiarası,203.35853267460882,7.124238706814728e-43,0.30913301383357206,Moderate,Yes
-COVID-19 Period,covid19sonrasi,203.6676902811285,5.944604754018306e-45,0.43751228799191205,Moderate,Yes
-Baby-Friendly Hospital Initiative,bebek_dostu_20temmuz2018,32.95911872485127,6.966558762363367e-08,0.17600174812457214,Weak,Yes
