@@ -1,11 +1,11 @@
 # Excel files (private data)
-#*.xlsx
-#*.xls
-#*.xlsm
-#*.csv
+*.xlsx
+*.xls
+*.xlsm
+*.csv
 
 # Generated outputs (can be recreated by running Stage scripts)
-#outputs/
+outputs/
 
 # Python
 __pycache__/
