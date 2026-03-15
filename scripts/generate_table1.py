@@ -246,7 +246,7 @@ def generate_infant_section(df):
             'n': row['n']
         })
     
-    # Top diagnoses (show top 7 + other)
+    # All diagnoses (expanded per reviewer request)
     rows.append({
         'Variable': 'Primary diagnosis',
         'Value': '',
@@ -254,25 +254,14 @@ def generate_infant_section(df):
     })
     
     diag_counts = df['tanı_gruplu'].value_counts()
-    top_7 = diag_counts.head(7)
-    other_count = diag_counts[7:].sum() if len(diag_counts) > 7 else 0
-    
     diag_labels = CAT_LABELS_EN['tanı_gruplu']
-    for code, count in top_7.items():
+    for code, count in diag_counts.items():
         pct = (count / total_n) * 100
         label = diag_labels.get(code, f"Code {code}")
         rows.append({
             'Variable': f"  {label}",
             'Value': f"{count} ({pct:.1f}%)",
             'n': count
-        })
-    
-    if other_count > 0:
-        pct = (other_count / total_n) * 100
-        rows.append({
-            'Variable': "  Other",
-            'Value': f"{other_count} ({pct:.1f}%)",
-            'n': other_count
         })
     
     return pd.DataFrame(rows)
@@ -290,11 +279,17 @@ def generate_clinical_section(df):
         'n': len(df['takiptekacgun'].dropna())
     })
     
-    # Day 1 breastfeeding
+    # Day 1 breastfeeding — split into direct and expressed (per reviewer)
     rows.append({
-        'Variable': 'Day 1 breastfeeding initiation',
+        'Variable': 'Day 1 direct breastfeeding initiation',
         'Value': format_binary(df['ilk_gün_emzirme_111']),
         'n': len(df['ilk_gün_emzirme_111'].dropna())
+    })
+    
+    rows.append({
+        'Variable': 'Day 1 breast milk received (any route)†',
+        'Value': format_binary(df['ilk_gün_anne_sütü_1111']),
+        'n': len(df['ilk_gün_anne_sütü_1111'].dropna())
     })
     
     # Colostrum present
@@ -304,9 +299,9 @@ def generate_clinical_section(df):
         'n': len(df['Kolostrumvarligi'].dropna())
     })
     
-    # Initial feeding route (top categories)
+    # Initial feeding route — show ALL categories (per reviewer)
     rows.append({
-        'Variable': 'Initial feeding route',
+        'Variable': 'Initial feeding route on Day 1',
         'Value': '',
         'n': ''
     })
@@ -314,8 +309,7 @@ def generate_clinical_section(df):
     route_labels = CAT_LABELS_EN['beslenmeninilkgunuverilisyolu']
     route_data = format_categorical(df['beslenmeninilkgunuverilisyolu'], route_labels)
     
-    # Show top 5 routes
-    for idx, row in route_data.head(5).iterrows():
+    for idx, row in route_data.iterrows():
         rows.append({
             'Variable': f"  {row['Category']}",
             'Value': row['Formatted'],
@@ -489,8 +483,12 @@ def main():
     # Add footnote
     footnote = ("Data are presented as mean ± SD (range) for normally distributed continuous variables, "
                 "median (IQR) [range] for non-normally distributed continuous variables, or n (%) for "
-                "categorical variables. EBF, exclusive breastfeeding; BFHI, Baby-Friendly Hospital Initiative; "
-                "ELBW, extremely low birth weight; VLBW, very low birth weight; LBW, low birth weight.")
+                "categorical variables. †Includes both direct breastfeeding and expressed breast milk "
+                "delivered via oral (PO) or orogastric (OG) routes. 'None' in initial feeding route "
+                "indicates NPO (nil per os) infants who were too clinically unstable to receive enteral "
+                "feeding on Day 1. EBF, exclusive breastfeeding; BF, direct breastfeeding; BFHI, "
+                "Baby-Friendly Hospital Initiative; ELBW, extremely low birth weight; VLBW, very low "
+                "birth weight; LBW, low birth weight; NPO, nil per os; PO, oral; OG, orogastric.")
     
     table1 = pd.concat([
         table1,

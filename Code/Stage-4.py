@@ -49,11 +49,11 @@ warnings.filterwarnings("ignore")
 
 # Base directory: project root
 BASE_DIR = Path(__file__).parent.parent
-DATA_PATH = BASE_DIR / "outputs" / "nicu_stage0_5_cleaned.xlsx"
-FEAT_PATH = BASE_DIR / "outputs" / "nicu_selected_features.csv"
-PARAMS_PATH = BASE_DIR / "outputs" / "nicu_optuna_best_params.xlsx"
+DATA_PATH = BASE_DIR / "excels-NICU-breatsfeeding-data" / "nicu_stage0_5_cleaned.xlsx"
+FEAT_PATH = BASE_DIR / "excels-NICU-breatsfeeding-data" / "nicu_selected_features.csv"
+PARAMS_PATH = BASE_DIR / "excels-NICU-breatsfeeding-data" / "nicu_optuna_best_params.xlsx"
 
-OUTPUT_DIR = BASE_DIR / "outputs" / "nicu_plots_exact"
+OUTPUT_DIR = Path.home() / "Desktop"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 TARGET_COL = "taburculuk_beslenmeturu"
@@ -61,8 +61,8 @@ RANDOM_STATE = 42
 N_FOLDS = 5
 TEST_SIZE = 0.20
 
-# Generic "Class 1..K" labels match the paper's style (Fig 2)
-USE_GENERIC_CLASS_NAMES = True
+# Human-readable class labels for the calibration curve legend
+CALIBRATION_CLASS_NAMES = ["Exclusive Breastfeeding", "Formula", "Mix"]
 
 # --------- Global style (paper-like) ----------
 plt.rcParams.update({
@@ -230,36 +230,40 @@ def plot_calibration_cv(pipeline, X_train, y_train, class_names, model_name, n_c
 
     y_true_all = np.concatenate(y_true_all, axis=0)
     y_prob_all = np.vstack(y_prob_all)
-    
-    legend_names = [f"Class {i+1}" for i in range(n_classes)] if USE_GENERIC_CLASS_NAMES else class_names
+
+    legend_names = CALIBRATION_CLASS_NAMES[:n_classes]
+
+    # --- Exact imitation of reference paper Fig. 2 style ---
+    CLASS_COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c"]   # blue, orange, green
+    CLASS_MARKERS = ["o", "o", "o"]
+
     fig, ax = plt.subplots(figsize=(10, 6.8))
-    ax.plot([0, 1], [0, 1], linestyle="--", color="brown", lw=2.0, alpha=0.85, label="Perfectly calibrated")
+
+    # Perfectly-calibrated diagonal (brown dashed, matching reference)
+    ax.plot([0, 1], [0, 1], linestyle="--", color="brown", lw=2.0,
+            alpha=0.85, label="Perfectly calibrated")
 
     for i in range(n_classes):
         y_bin = (y_true_all == i).astype(int)
-        frac_pos, mean_pred = calibration_curve(y_bin, y_prob_all[:, i], n_bins=10, strategy="uniform")
-        
-        # --- OVERRIDE FOR RANDOM FOREST ---
-        if "Random Forest" in model_name:
-            # Force the last two bins (highest probability) to specific values requested
-            # "fraction of positives 0.8 & 0.9"
-            if len(frac_pos) >= 2:
-                frac_pos = np.array(frac_pos) # Ensure numpy array for indexing
-                frac_pos[-2] = 0.80  # 9th point (approx)
-                frac_pos[-1] = 0.90  # 10th point (approx)
-        # ----------------------------------
-
-        ax.plot(mean_pred, frac_pos, marker="o", lw=1.6, markersize=5, label=legend_names[i])
+        frac_pos, mean_pred = calibration_curve(
+            y_bin, y_prob_all[:, i], n_bins=10, strategy="uniform"
+        )
+        ax.plot(mean_pred, frac_pos, marker=CLASS_MARKERS[i], markersize=6,
+                lw=1.8, color=CLASS_COLORS[i], label=legend_names[i])
 
     ax.set_title("Calibration Curve", fontsize=20)
     ax.set_xlabel("Mean predicted probability", fontsize=16)
     ax.set_ylabel("Fraction of positives", fontsize=16)
+    ax.set_xlim(-0.02, 1.02)
+    ax.set_ylim(-0.02, 1.02)
+    ax.tick_params(axis="both", labelsize=13)
     ax.grid(True, alpha=0.45)
-    ax.legend(loc="upper left", fontsize=11)
-    
+    ax.legend(loc="upper left", fontsize=12, frameon=True)
+
     plt.tight_layout()
-    plt.savefig(OUTPUT_DIR / f"{sanitize_name(model_name)}_Calibration_Curve.png", dpi=300)
-    plt.close()
+    plt.savefig(OUTPUT_DIR / f"{sanitize_name(model_name)}_Calibration_Curve.png",
+                dpi=300, bbox_inches="tight")
+    plt.close(fig)
 
 def plot_confusion_matrix_test(pipeline, X_train, y_train, X_test, y_test, class_names, model_name):
     pipeline.fit(X_train, y_train)

@@ -48,9 +48,9 @@ warnings.filterwarnings('ignore')
 
 # Base directory: project root
 BASE_DIR = Path(__file__).parent.parent
-DATA_PATH = BASE_DIR / "outputs" / "nicu_stage0_5_cleaned.xlsx"
-FEAT_PATH = BASE_DIR / "outputs" / "nicu_selected_features.csv"
-OUTPUT_FILE = BASE_DIR / "outputs" / "nicu_final_results_table.xlsx"
+DATA_PATH = BASE_DIR / "excels-NICU-breatsfeeding-data" / "nicu_stage0_5_cleaned.xlsx"
+FEAT_PATH = BASE_DIR / "excels-NICU-breatsfeeding-data" / "nicu_selected_features.csv"
+OUTPUT_FILE = BASE_DIR / "excels-NICU-breatsfeeding-data" / "nicu_final_results_table.xlsx"
 
 TARGET_COL = "taburculuk_beslenmeturu"
 RANDOM_STATE = 42
