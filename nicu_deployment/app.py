@@ -61,29 +61,29 @@ st.markdown("""
 
 # ==================== CONSTANTS ====================
 
-OPTIMAL_THRESHOLD = 0.26
 FORMULA_CLASS_IDX = 1
 
 # ==================== LOAD MODEL ====================
 
 APP_DIR = Path(__file__).parent
+MODEL_FILE = "+day1_2_no_covid.pkl"
 
 @st.cache_resource
 def load_model_artifacts():
-    """Load the trained model and metadata"""
+    """Load the trained model dict from the deployment pickle."""
     try:
-        with open(APP_DIR / 'trained_model.pkl', 'rb') as f:
-            model = pickle.load(f)
-        with open(APP_DIR / 'feature_metadata.json', 'r') as f:
-            metadata = json.load(f)
-        with open(APP_DIR / 'model_info.json', 'r') as f:
-            model_info = json.load(f)
-        return model, metadata, model_info
+        with open(APP_DIR / MODEL_FILE, 'rb') as f:
+            bundle = pickle.load(f)
+        pipeline = bundle["pipeline"]
+        threshold = bundle["threshold"]
+        features = bundle["features"]
+        class_labels = bundle["class_labels"]
+        return pipeline, threshold, features, class_labels
     except Exception as e:
         st.error(f"Error loading model: {str(e)}")
-        return None, None, None
+        return None, None, None, None
 
-model_pipeline, feature_metadata, model_info = load_model_artifacts()
+model_pipeline, OPTIMAL_THRESHOLD, MODEL_FEATURES, CLASS_LABELS = load_model_artifacts()
 
 # ==================== HELPER FUNCTIONS ====================
 
@@ -367,7 +367,7 @@ with tab2:
             data = compute_engineered(data)
 
             # Ensure all expected features present
-            all_features = feature_metadata["all_features"]
+            all_features = MODEL_FEATURES
             for feat in all_features:
                 if feat not in data:
                     data[feat] = np.nan
