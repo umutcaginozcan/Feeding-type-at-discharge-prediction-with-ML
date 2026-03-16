@@ -93,7 +93,7 @@ DAY1_COLS = [
     # Numeric
     "aldığıannesütü_ilkgün", "aldığımamamiktari1.gün", "kilo1.gun",
     # Engineered
-    "eng_bm_ratio_d1", "eng_resilience_index",
+    "eng_bm_ratio_d1",
     # Categoricals
     "ilk_gün_anne_sütü_1111", "ilk_gün_emzirme_111",
 ]
@@ -115,6 +115,7 @@ DAY3_COLS = [
     # Engineered
     "eng_bm_ratio_d3", "eng_delta_vol_d2_d3",
     "eng_lactation_momentum",  # requires D2+D3 trajectory
+    "eng_resilience_index",    # d3_total / birth_weight — Day 3 feature
     # Categoricals
     "verilisyolu3gun",
 ]

@@ -81,7 +81,7 @@ BASELINE_COLS = [
 
 DAY1_COLS = [
     "aldığıannesütü_ilkgün", "aldığımamamiktari1.gün", "kilo1.gun",
-    "eng_bm_ratio_d1", "eng_resilience_index",
+    "eng_bm_ratio_d1",
     "ilk_gün_anne_sütü_1111", "ilk_gün_emzirme_111",
 ]
 
