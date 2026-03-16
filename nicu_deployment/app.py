@@ -274,12 +274,28 @@ tab1, tab2, tab3 = st.tabs([
 
 # ==================== EXAMPLE HELPERS ====================
 
-example = st.session_state.get("example_loaded", False)
-if example:
-    st.session_state.example_loaded = False
+def _load_example():
+    """Populate session_state widget keys with example values."""
     ex = EXAMPLE_PATIENT
-else:
-    ex = None
+    st.session_state["inp_bw"] = ex["birth_weight"]
+    st.session_state["inp_ga"] = ex["ga_weeks"]
+    st.session_state["inp_ga_days"] = ex["ga_days"]
+    st.session_state["inp_wt_fu"] = ex["weight_followup"]
+    st.session_state["inp_mat_age"] = ex["mat_age"]
+    st.session_state["inp_bf_edu"] = ex["bf_education"]
+    st.session_state["inp_bfhi"] = ex["bfhi_status"]
+    st.session_state["inp_d1_fm"] = ex["d1_formula"]
+    st.session_state["inp_d1_bm"] = ex["d1_bm"]
+    st.session_state["inp_d1_bm_flag"] = ex["d1_bm_flag"]
+    st.session_state["inp_d1_bf_flag"] = ex["d1_bf_flag"]
+    st.session_state["inp_wt_d1"] = ex["weight_d1"]
+    st.session_state["inp_d2_bm"] = ex["d2_bm"]
+    st.session_state["inp_d2_fm"] = ex["d2_formula"]
+    st.session_state["inp_wt_d2"] = ex["weight_d2"]
+    st.session_state["inp_d3_bm"] = ex["d3_bm"]
+    st.session_state["inp_d3_fm"] = ex["d3_formula"]
+    st.session_state["inp_wt_d3"] = ex["weight_d3"]
+    st.session_state["inp_d3_route"] = ex["d3_route"]
 
 needs_day1 = selected_window in [
     "Day 1 (0–24h)", "Day 1+2 (0–48h)", "Full (0–72h)"]
@@ -292,10 +308,8 @@ needs_day3 = selected_window == "Full (0–72h)"
 with tab1:
     st.markdown(f"### Patient Information — {selected_window}")
 
-    if st.button("📋 Load Example Patient",
-                  help="Fill all fields with a realistic 35-week preterm case"):
-        st.session_state.example_loaded = True
-        st.rerun()
+    st.button("📋 Load Example Patient", on_click=_load_example,
+              help="Fill all fields with a realistic 35-week preterm case")
 
     col1, col2 = st.columns(2)
 
@@ -305,47 +319,44 @@ with tab1:
         st.markdown("#### 👶 Infant Characteristics")
         birth_weight = st.number_input(
             "Birth Weight (g) *", 300, 7000,
-            value=ex["birth_weight"] if ex else None, step=10)
+            value=None, key="inp_bw", step=10)
         ga_weeks = st.number_input(
             "Gestational Age (weeks) *", 22.0, 44.0,
-            value=ex["ga_weeks"] if ex else None, step=0.1)
+            value=None, key="inp_ga", step=0.1)
         ga_days = st.number_input(
             "Gestational Days", 0, 6,
-            value=ex["ga_days"] if ex else 0, step=1)
+            value=0, key="inp_ga_days", step=1)
         weight_followup = st.number_input(
             "Follow-up Weight (g)", 0, 7000,
-            value=ex["weight_followup"] if ex else 0, step=10)
+            value=0, key="inp_wt_fu", step=10)
 
         st.markdown("---")
         st.markdown("#### 👩 Maternal & Institutional")
         mat_age = st.number_input(
             "Maternal Age (years) *", 12, 55,
-            value=ex["mat_age"] if ex else None, step=1)
+            value=None, key="inp_mat_age", step=1)
         bf_education = st.selectbox(
-            "Breastfeeding Education", bf_opts,
-            index=bf_opts.index(ex["bf_education"]) if ex else 0)
+            "Breastfeeding Education", bf_opts, key="inp_bf_edu")
         bfhi_status = st.selectbox(
             "Baby-Friendly Hospital Initiative (BFHI)", bf_opts,
-            index=bf_opts.index(ex["bfhi_status"]) if ex else 0)
+            key="inp_bfhi")
 
     with col1:
         if needs_day1:
             st.markdown("#### 🍼 Day 1 (0–24h)")
             d1_formula = st.number_input(
                 "Day 1 Formula (cc)", 0.0,
-                value=ex["d1_formula"] if ex else 0.0, step=0.1)
+                value=0.0, key="inp_d1_fm", step=0.1)
             d1_bm = st.number_input(
                 "Day 1 Breast Milk (cc)", 0.0,
-                value=ex["d1_bm"] if ex else 0.0, step=0.1)
+                value=0.0, key="inp_d1_bm", step=0.1)
             d1_bm_flag = st.selectbox(
-                "Day 1 Breast Milk Given?", bf_opts,
-                index=bf_opts.index(ex["d1_bm_flag"]) if ex else 0)
+                "Day 1 Breast Milk Given?", bf_opts, key="inp_d1_bm_flag")
             d1_bf_flag = st.selectbox(
-                "Day 1 Breastfeeding?", bf_opts,
-                index=bf_opts.index(ex["d1_bf_flag"]) if ex else 0)
+                "Day 1 Breastfeeding?", bf_opts, key="inp_d1_bf_flag")
             weight_d1 = st.number_input(
                 "Day 1 Weight (g)", 0, 7000,
-                value=ex["weight_d1"] if ex else 0, step=10)
+                value=0, key="inp_wt_d1", step=10)
         else:
             d1_formula = d1_bm = 0.0
             d1_bm_flag = d1_bf_flag = ""
@@ -356,15 +367,15 @@ with tab1:
             st.markdown("#### 🍼 Day 2 (24–48h)")
             d2_bm = st.number_input(
                 "Day 2 Breast Milk (cc)", 0.0,
-                value=ex["d2_bm"] if ex else 0.0, step=0.1)
+                value=0.0, key="inp_d2_bm", step=0.1)
             d2_formula = st.number_input(
                 "Day 2 Formula (cc)", 0.0,
-                value=ex["d2_formula"] if ex else 0.0, step=0.1)
+                value=0.0, key="inp_d2_fm", step=0.1)
             d2_total = d2_bm + d2_formula
             st.info(f"Day 2 Total: {d2_total:.1f} cc")
             weight_d2 = st.number_input(
                 "Day 2 Weight (g)", 0, 7000,
-                value=ex["weight_d2"] if ex else 0, step=10)
+                value=0, key="inp_wt_d2", step=10)
         else:
             d2_bm = d2_formula = d2_total = 0.0
             weight_d2 = 0
@@ -374,19 +385,18 @@ with tab1:
             st.markdown("#### 🍼 Day 3 (48–72h)")
             d3_bm = st.number_input(
                 "Day 3 Breast Milk (cc)", 0.0,
-                value=ex["d3_bm"] if ex else 0.0, step=0.1)
+                value=0.0, key="inp_d3_bm", step=0.1)
             d3_formula = st.number_input(
                 "Day 3 Formula (cc)", 0.0,
-                value=ex["d3_formula"] if ex else 0.0, step=0.1)
+                value=0.0, key="inp_d3_fm", step=0.1)
             d3_total = d3_bm + d3_formula
             st.info(f"Day 3 Total: {d3_total:.1f} cc")
             weight_d3 = st.number_input(
                 "Day 3 Weight (g)", 0, 7000,
-                value=ex["weight_d3"] if ex else 0, step=10)
+                value=0, key="inp_wt_d3", step=10)
             route_opts = ["", "PO", "OG", "PO+OG", "BF", "BF+PO", "BF+OG"]
             d3_route = st.selectbox(
-                "Day 3 Feeding Route", route_opts,
-                index=route_opts.index(ex["d3_route"]) if ex else 0)
+                "Day 3 Feeding Route", route_opts, key="inp_d3_route")
         else:
             d3_bm = d3_formula = d3_total = 0.0
             weight_d3 = 0
@@ -403,20 +413,14 @@ with tab1:
     if mat_age is None:
         missing_fields.append("Maternal Age")
 
-    if missing_fields:
-        field_list = ", ".join(f"**{f}**" for f in missing_fields)
-        st.markdown(
-            f'<div class="field-warning">'
-            f'⚠️ Required fields missing: {field_list}. '
-            f'Please fill them before generating a prediction.</div>',
-            unsafe_allow_html=True)
-
     predict_button = st.button("🔬 Generate Prediction", type="primary",
                                 use_container_width=True)
     if predict_button and missing_fields:
-        st.error(
-            f"🚫 Cannot predict — please fill: "
-            f"{', '.join(missing_fields)}")
+        field_list = ", ".join(f"**{f}**" for f in missing_fields)
+        st.markdown(
+            f'<div class="field-warning">'
+            f'⚠️ Cannot predict — required fields missing: {field_list}.</div>',
+            unsafe_allow_html=True)
         predict_button = False
     elif predict_button:
         st.success(
