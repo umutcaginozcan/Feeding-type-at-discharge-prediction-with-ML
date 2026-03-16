@@ -46,6 +46,16 @@ st.markdown("""
         padding: 0.75rem 2rem; border-radius: 8px; font-size: 1rem;
     }
     .stButton>button:hover { opacity: 0.9; }
+    .field-warning {
+        background: #FEF2F2;
+        border-left: 4px solid #DC2626;
+        padding: 0.5rem 0.8rem;
+        border-radius: 0 6px 6px 0;
+        margin: 0.3rem 0 0.8rem 0;
+        font-size: 0.82rem;
+        color: #991B1B;
+        font-family: 'Inter', sans-serif;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -249,16 +259,7 @@ else:
     TEST_METRICS = {}
     CV_METRICS = {}
 
-# Metrics strip
-if bundle:
-    m = TEST_METRICS
-    mc1, mc2, mc3, mc4, mc5, mc6 = st.columns(6)
-    mc1.metric("Formula Recall", m.get("Formula_Recall", "—"))
-    mc2.metric("Formula Precision", m.get("Formula_Precision", "—"))
-    mc3.metric("MCC", m.get("MCC", "—"))
-    mc4.metric("Brier", m.get("Brier_Formula", "—"))
-    mc5.metric("Threshold", OPTIMAL_THRESHOLD)
-    mc6.metric("Features", len(MODEL_FEATURES))
+
 
 st.markdown("---")
 
@@ -392,9 +393,32 @@ with tab1:
             d3_route = ""
 
     st.markdown("---")
+
+    # ---- Validation ----
+    missing_fields = []
+    if birth_weight is None:
+        missing_fields.append("Birth Weight")
+    if ga_weeks is None:
+        missing_fields.append("Gestational Age")
+    if mat_age is None:
+        missing_fields.append("Maternal Age")
+
+    if missing_fields:
+        field_list = ", ".join(f"**{f}**" for f in missing_fields)
+        st.markdown(
+            f'<div class="field-warning">'
+            f'⚠️ Required fields missing: {field_list}. '
+            f'Please fill them before generating a prediction.</div>',
+            unsafe_allow_html=True)
+
     predict_button = st.button("🔬 Generate Prediction", type="primary",
                                 use_container_width=True)
-    if predict_button:
+    if predict_button and missing_fields:
+        st.error(
+            f"🚫 Cannot predict — please fill: "
+            f"{', '.join(missing_fields)}")
+        predict_button = False
+    elif predict_button:
         st.success(
             "✅ Prediction generated! "
             "**Click the 'Results & Visualization' tab.**")
