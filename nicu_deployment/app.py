@@ -19,8 +19,6 @@ st.set_page_config(
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-    /* Header */
     .main-header {
         background: linear-gradient(135deg, #0A2540 0%, #1E3A5F 50%, #006B7D 100%);
         padding: 2rem 2.5rem; border-radius: 16px; color: white;
@@ -28,11 +26,6 @@ st.markdown("""
     }
     .main-header h1 { margin: 0; font-weight: 700; font-size: 1.6rem; }
     .main-header p  { margin: 0.5rem 0 0 0; opacity: 0.85; font-size: 1rem; }
-    .metric-row {
-        display: flex; gap: 1.2rem; margin-top: 1.5rem;
-        border-top: 1px solid rgba(255,255,255,0.2); padding-top: 1rem;
-        flex-wrap: wrap;
-    }
     .metric-item .label {
         font-size: 0.65rem; opacity: 0.7; text-transform: uppercase;
         letter-spacing: 0.06em;
@@ -41,99 +34,12 @@ st.markdown("""
         font-size: 1.1rem; font-weight: 600;
         font-family: 'Courier New', monospace;
     }
-
-    /* Window selector cards */
-    .window-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.8rem;
-        margin-bottom: 1.5rem;
-    }
-    @media (max-width: 768px) {
-        .window-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-    .window-card {
-        position: relative;
-        border: 2px solid #E2E8F0;
-        border-radius: 12px;
-        padding: 1.2rem 1rem;
-        background: #FFFFFF;
-        text-align: center;
-        cursor: default;
-        transition: all 0.2s ease;
-        font-family: 'Inter', sans-serif;
-    }
-    .window-card:hover {
-        border-color: #94A3B8;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    }
-    .window-card.active {
-        border-color: #006B7D;
-        background: linear-gradient(135deg, #F0FDFA 0%, #E0F7FA 100%);
-        box-shadow: 0 4px 16px rgba(0,107,125,0.15);
-    }
-    .window-card .icon {
-        font-size: 1.8rem;
-        margin-bottom: 0.3rem;
-    }
-    .window-card .title {
-        font-weight: 700;
-        font-size: 0.95rem;
-        color: #0A2540;
-        margin-bottom: 0.2rem;
-    }
-    .window-card .subtitle {
-        font-size: 0.72rem;
-        color: #64748B;
-        line-height: 1.3;
-    }
-    .window-card .badge {
-        display: inline-block;
-        margin-top: 0.5rem;
-        font-size: 0.65rem;
-        font-weight: 600;
-        padding: 0.15rem 0.5rem;
-        border-radius: 20px;
-        letter-spacing: 0.03em;
-    }
-    .window-card .badge.feat {
-        background: #E2E8F0;
-        color: #475569;
-    }
-    .window-card.active .badge.feat {
-        background: rgba(0,107,125,0.15);
-        color: #006B7D;
-    }
-    .window-card .badge.rec {
-        background: #FEF2F2;
-        color: #DC2626;
-        margin-left: 0.3rem;
-    }
-    .window-card .recommended-tag {
-        position: absolute;
-        top: -9px;
-        right: 10px;
-        background: linear-gradient(135deg, #006B7D, #059669);
-        color: white;
-        font-size: 0.55rem;
-        font-weight: 700;
-        padding: 0.15rem 0.5rem;
-        border-radius: 4px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    /* Prediction boxes */
     .prediction-box {
         border-radius: 12px; padding: 2rem; text-align: center; margin: 1rem 0;
     }
     .prediction-box.ebf { background: #ECFDF5; border: 2px solid #059669; }
     .prediction-box.formula { background: #FEF2F2; border: 2px solid #DC2626; }
     .prediction-box.mixed { background: #EFF6FF; border: 2px solid #2563EB; }
-
-    /* Buttons */
     .stButton>button {
         background: linear-gradient(135deg, #0A2540 0%, #006B7D 100%);
         color: white; font-weight: 600; border: none;
@@ -142,7 +48,6 @@ st.markdown("""
     .stButton>button:hover { opacity: 0.9; }
 </style>
 """, unsafe_allow_html=True)
-
 
 # ==================== CONSTANTS ====================
 
@@ -159,30 +64,21 @@ MODEL_FILES = {
 }
 
 WINDOW_META = {
-    "Baseline (Admission)": {
-        "icon": "🏥", "short": "Baseline",
+    "Baseline (Admission)": {"icon": "🏥", "short": "Baseline",
         "desc": "Admission data only",
-        "detail": "Birth weight, gestational age, maternal factors",
-    },
-    "Day 1 (0–24h)": {
-        "icon": "🍼", "short": "Day 1",
+        "detail": "Birth weight, gestational age, maternal factors"},
+    "Day 1 (0–24h)": {"icon": "🍼", "short": "Day 1",
         "desc": "First 24 hours",
-        "detail": "+ Day 1 feeding volumes & breastfeeding status",
-    },
-    "Day 1+2 (0–48h)": {
-        "icon": "📊", "short": "Day 1+2",
+        "detail": "+ Day 1 feeding volumes & breastfeeding status"},
+    "Day 1+2 (0–48h)": {"icon": "📊", "short": "Day 1+2",
         "desc": "First 48 hours",
         "detail": "+ Day 2 volumes & intake trajectory",
-        "recommended": True,
-    },
-    "Full (0–72h)": {
-        "icon": "🔬", "short": "Full",
+        "recommended": True},
+    "Full (0–72h)": {"icon": "🔬", "short": "Full",
         "desc": "First 72 hours",
-        "detail": "Most complete — highest accuracy",
-    },
+        "detail": "Most complete — highest accuracy"},
 }
 
-# ---- Hardcoded example patient (realistic clinical case) ----
 EXAMPLE_PATIENT = {
     "birth_weight": 2350,
     "ga_weeks": 35.0,
@@ -205,7 +101,6 @@ EXAMPLE_PATIENT = {
     "d3_route": "BF+PO",
 }
 
-
 # ==================== MODEL LOADING ====================
 
 @st.cache_resource
@@ -218,9 +113,7 @@ def load_all_models():
                 bundles[name] = pickle.load(f)
     return bundles
 
-
 ALL_BUNDLES = load_all_models()
-
 
 # ==================== HELPERS ====================
 
@@ -301,62 +194,44 @@ def compute_tree_ci(pipeline, input_df, confidence=0.95):
 st.markdown("""
 <div class="main-header">
     <h1>🏥 NICU Feeding Prediction Calculator</h1>
-    <p>Clinical Decision Support · Multi-Window Model · Tree-Variance Confidence Intervals</p>
+    <p>Clinical Decision Support · Multi-Window Model · Tree-Variance CIs</p>
 </div>
 """, unsafe_allow_html=True)
 
 
-# ==================== WINDOW SELECTOR ====================
+# ==================== WINDOW SELECTOR (native Streamlit) ====================
 
-st.markdown("#### Select your data window")
-st.caption("Choose the model that matches the data you have available:")
+st.markdown("#### 🕐 Select Your Data Window")
+st.caption("Choose the model that matches the clinical data you have available.")
 
-# Build visual cards (HTML) + Streamlit radio for actual selection
+# Use native Streamlit columns for the cards — works on mobile
+c1, c2, c3, c4 = st.columns(4)
 window_keys = list(MODEL_FILES.keys())
 
-if "selected_window" not in st.session_state:
-    st.session_state.selected_window = "Day 1+2 (0–48h)"
-
-# Render card grid
-cards_html = '<div class="window-grid">'
-for wname in window_keys:
+for i, (col, wname) in enumerate(zip([c1, c2, c3, c4], window_keys)):
     meta = WINDOW_META[wname]
-    is_active = (wname == st.session_state.selected_window)
-    active_cls = " active" if is_active else ""
-    rec_tag = ""
-    if meta.get("recommended"):
-        rec_tag = '<div class="recommended-tag">★ Recommended</div>'
+    with col:
+        b = ALL_BUNDLES.get(wname, {})
+        n_feat = len(b.get("features", []))
+        auc = b.get("test_metrics", {}).get("AUC_ROC", "—")
+        rec_label = " ⭐" if meta.get("recommended") else ""
+        st.metric(
+            label=f"{meta['icon']} {meta['short']}{rec_label}",
+            value=f"AUC {auc}",
+            delta=f"{n_feat} features",
+            delta_color="off",
+        )
+        st.caption(meta["detail"])
 
-    n_feat = 0
-    auc_val = ""
-    if wname in ALL_BUNDLES:
-        b = ALL_BUNDLES[wname]
-        n_feat = len(b["features"])
-        auc_val = f"{b['test_metrics'].get('AUC_ROC', 0):.3f}"
-
-    cards_html += f"""
-    <div class="window-card{active_cls}">
-        {rec_tag}
-        <div class="icon">{meta['icon']}</div>
-        <div class="title">{meta['short']}</div>
-        <div class="subtitle">{meta['desc']}<br>{meta['detail']}</div>
-        <span class="badge feat">{n_feat} features</span>
-        <span class="badge rec">AUC {auc_val}</span>
-    </div>"""
-cards_html += '</div>'
-st.markdown(cards_html, unsafe_allow_html=True)
-
-# Functional selector (segmented control)
+# The actual functional selector
 selected_window = st.segmented_control(
-    "Model",
+    "Select model window:",
     window_keys,
-    default=st.session_state.selected_window,
+    default="Day 1+2 (0–48h)",
     label_visibility="collapsed",
 )
-if selected_window:
-    st.session_state.selected_window = selected_window
-else:
-    selected_window = st.session_state.selected_window
+if not selected_window:
+    selected_window = "Day 1+2 (0–48h)"
 
 # Load selected model
 if selected_window in ALL_BUNDLES:
@@ -367,7 +242,7 @@ if selected_window in ALL_BUNDLES:
     TEST_METRICS = bundle.get("test_metrics", {})
     CV_METRICS = bundle.get("cv_metrics", {})
 else:
-    st.error(f"Model for '{selected_window}' not found.")
+    st.error(f"Model '{selected_window}' not found.")
     bundle = model_pipeline = None
     OPTIMAL_THRESHOLD = 0.3
     MODEL_FEATURES = []
@@ -377,41 +252,13 @@ else:
 # Metrics strip
 if bundle:
     m = TEST_METRICS
-    st.markdown(f"""
-    <div style="display:flex; gap:1.5rem; flex-wrap:wrap; margin:0.5rem 0 1rem 0;
-                padding:0.8rem 1.2rem; background:#F8FAFC;
-                border:1px solid #E2E8F0; border-radius:10px;
-                font-family:'Inter',sans-serif;">
-        <div class="metric-item">
-            <div class="label">AUC-ROC</div>
-            <div class="value">{m.get('AUC_ROC','—')}</div>
-        </div>
-        <div class="metric-item">
-            <div class="label">F. Recall</div>
-            <div class="value">{m.get('Formula_Recall','—')}</div>
-        </div>
-        <div class="metric-item">
-            <div class="label">F. Precision</div>
-            <div class="value">{m.get('Formula_Precision','—')}</div>
-        </div>
-        <div class="metric-item">
-            <div class="label">MCC</div>
-            <div class="value">{m.get('MCC','—')}</div>
-        </div>
-        <div class="metric-item">
-            <div class="label">Brier</div>
-            <div class="value">{m.get('Brier_Formula','—')}</div>
-        </div>
-        <div class="metric-item">
-            <div class="label">Threshold</div>
-            <div class="value">{OPTIMAL_THRESHOLD}</div>
-        </div>
-        <div class="metric-item">
-            <div class="label">Features</div>
-            <div class="value">{len(MODEL_FEATURES)}</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    mc1, mc2, mc3, mc4, mc5, mc6 = st.columns(6)
+    mc1.metric("Formula Recall", m.get("Formula_Recall", "—"))
+    mc2.metric("Formula Precision", m.get("Formula_Precision", "—"))
+    mc3.metric("MCC", m.get("MCC", "—"))
+    mc4.metric("Brier", m.get("Brier_Formula", "—"))
+    mc5.metric("Threshold", OPTIMAL_THRESHOLD)
+    mc6.metric("Features", len(MODEL_FEATURES))
 
 st.markdown("---")
 
@@ -444,12 +291,14 @@ needs_day3 = selected_window == "Full (0–72h)"
 with tab1:
     st.markdown(f"### Patient Information — {selected_window}")
 
-    # Example patient button (in main area, not sidebar)
-    if st.button("📋 Load Example Patient", help="Fill all fields with a realistic case"):
+    if st.button("📋 Load Example Patient",
+                  help="Fill all fields with a realistic 35-week preterm case"):
         st.session_state.example_loaded = True
         st.rerun()
 
     col1, col2 = st.columns(2)
+
+    bf_opts = ["", "No", "Yes"]
 
     with col2:
         st.markdown("#### 👶 Infant Characteristics")
@@ -471,8 +320,6 @@ with tab1:
         mat_age = st.number_input(
             "Maternal Age (years) *", 12, 55,
             value=ex["mat_age"] if ex else None, step=1)
-
-        bf_opts = ["", "No", "Yes"]
         bf_education = st.selectbox(
             "Breastfeeding Education", bf_opts,
             index=bf_opts.index(ex["bf_education"]) if ex else 0)
@@ -549,7 +396,8 @@ with tab1:
                                 use_container_width=True)
     if predict_button:
         st.success(
-            "✅ Prediction generated! **Click the 'Results & Visualization' tab.**")
+            "✅ Prediction generated! "
+            "**Click the 'Results & Visualization' tab.**")
 
 
 # ==================== TAB 2: RESULTS ====================
@@ -597,11 +445,9 @@ with tab2:
                     data[feat] = np.nan
 
             input_df = pd.DataFrame([data])[MODEL_FEATURES]
-
             probabilities = model_pipeline.predict_proba(input_df)[0]
             prediction = apply_threshold(probabilities, OPTIMAL_THRESHOLD)
             predicted_class = CLASS_LABELS[prediction]
-
             mean_proba, ci_lower, ci_upper, std_proba = compute_tree_ci(
                 model_pipeline, input_df)
 
@@ -610,17 +456,14 @@ with tab2:
             st.markdown(f"""
             <div class="prediction-box {box_class}">
                 <h2 style="color:#0A2540; margin-bottom:0.5rem;">
-                    Predicted Feeding Type at Discharge
-                </h2>
+                    Predicted Feeding Type at Discharge</h2>
                 <h1 style="color:{CLASS_COLORS[prediction]};
                            font-size:2.2rem; margin:0.5rem 0;">
-                    {predicted_class}
-                </h1>
+                    {predicted_class}</h1>
                 <p style="font-size:1.1rem; color:#475569;">
                     P(Formula) = <strong>{probabilities[FORMULA_CLASS_IDX]*100:.1f}%</strong>
                     &nbsp;|&nbsp; Threshold = {OPTIMAL_THRESHOLD}
-                    &nbsp;|&nbsp; Model: {selected_window}
-                </p>
+                    &nbsp;|&nbsp; Model: {selected_window}</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -629,10 +472,10 @@ with tab2:
             st.caption(
                 "Intervals from individual tree predictions (tree-variance)")
 
-            col1, col2, col3 = st.columns(3)
+            gc1, gc2, gc3 = st.columns(3)
             for i, (label, prob, color) in enumerate(
                     zip(CLASS_LABELS, probabilities, CLASS_COLORS)):
-                with [col1, col2, col3][i]:
+                with [gc1, gc2, gc3][i]:
                     fig = go.Figure(go.Indicator(
                         mode="gauge+number", value=prob * 100,
                         title={"text": label, "font": {"size": 13}},
@@ -678,8 +521,7 @@ with tab2:
                         type="data", symmetric=False,
                         array=[ci_upper[i] - probabilities[i]],
                         arrayminus=[probabilities[i] - ci_lower[i]],
-                        color="#1E293B", thickness=2, width=8,
-                    ),
+                        color="#1E293B", thickness=2, width=8),
                 ))
             fig_ci.add_vline(
                 x=OPTIMAL_THRESHOLD, line_dash="dash",
@@ -687,16 +529,14 @@ with tab2:
                 annotation_text=f"Threshold ({OPTIMAL_THRESHOLD})",
                 annotation_position="top",
                 annotation_font_size=10,
-                annotation_font_color="#DC2626",
-            )
+                annotation_font_color="#DC2626")
             fig_ci.update_layout(
                 xaxis=dict(title="Probability", range=[0, 1],
                            tickformat=".0%"),
                 yaxis=dict(title=""),
                 height=250,
                 margin=dict(l=10, r=10, t=40, b=40),
-                plot_bgcolor="white", font=dict(size=12),
-            )
+                plot_bgcolor="white", font=dict(size=12))
             fig_ci.update_xaxes(showgrid=True, gridcolor="#E2E8F0")
             st.plotly_chart(fig_ci, use_container_width=True)
 
@@ -713,7 +553,6 @@ with tab3:
     st.markdown("### About This Tool")
     st.markdown("""
     #### Multi-Window Prediction
-
     | Window | Features | Threshold | AUC | Use Case |
     |:---|:---:|:---:|:---:|:---|
     | Baseline | 8 | 0.32 | 0.738 | Admission — earliest |
@@ -723,34 +562,31 @@ with tab3:
 
     #### Design
     - **F₂-optimized Random Forest** + constrained threshold (precision ≥ 0.40)
-    - **COVID/Epoch excluded** — better post-pandemic generalization
+    - **COVID/Epoch excluded** — post-pandemic generalization
     - **BFHI auto-included** where it improved cross-validated F₂
     - **Tree-variance CIs** — patient-specific uncertainty
 
-    #### Disclaimer
     ⚠️ This tool **supports** clinical decision-making.
     It should **not replace** professional medical judgment.
 
-    #### Privacy
     Patient data is processed locally, **not stored or transmitted**.
     """)
 
-    with st.expander("📊 Cross-Validation Details", expanded=False):
+    with st.expander("📊 Cross-Validation Details"):
         if CV_METRICS:
             cv_table = "| Metric | Mean ± SD |\n|:---|:---:|\n"
             for k, v in CV_METRICS.items():
                 cv_table += f"| {k} | {v['mean']:.3f} ± {v['std']:.3f} |\n"
             st.markdown(cv_table)
 
-    with st.expander("❓ FAQ", expanded=False):
+    with st.expander("❓ FAQ"):
         st.markdown("""
         **Q: Can I trust these predictions?**
-        The model was validated with 5-fold CV and a held-out test set.
-        Use as a screening tool, not a diagnosis.
+        Validated with 5-fold CV and held-out test set. Use as screening, not diagnosis.
 
         **Q: What if I don't fill all fields?**
-        Empty numeric fields are imputed with training-set medians.
+        Empty fields → median imputation from training data.
 
         **Q: Why no COVID variables?**
-        Our ablation study showed they're redundant post-pandemic.
+        Ablation showed they're redundant post-pandemic.
         """)
