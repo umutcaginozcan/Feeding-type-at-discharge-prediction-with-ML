@@ -674,19 +674,26 @@ with tab2:
                 explainer = shap.TreeExplainer(clf)
                 shap_values = explainer.shap_values(X_transformed)
 
+                # Get actual feature order from ColumnTransformer
+                # (may differ from MODEL_FEATURES which is alphabetical)
+                try:
+                    ct_features = [
+                        c.replace("num__", "")
+                        for c in prep.get_feature_names_out()]
+                except Exception:
+                    ct_features = list(MODEL_FEATURES)
+
                 # Handle both old (list) and new (3D array) SHAP API
                 sv_arr = np.array(shap_values)
                 if sv_arr.ndim == 3:
-                    # v0.48+: shape (n_samples, n_features, n_classes)
                     sv = sv_arr[0, :, prediction]
                 else:
-                    # older: list of (n_samples, n_features) per class
                     sv = shap_values[prediction][0]
-                feat_vals = X_transformed[0]  # preprocessed values
+                feat_vals = X_transformed[0]
 
                 # Build sorted dataframe
                 explain_df = pd.DataFrame({
-                    "feature_raw": MODEL_FEATURES,
+                    "feature_raw": ct_features,
                     "shap": sv,
                     "value": feat_vals,
                 })
