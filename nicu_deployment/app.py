@@ -172,7 +172,12 @@ ALL_BUNDLES = load_all_models()
 # ==================== HELPERS ====================
 
 def safe_val(v, default=np.nan):
-    return default if v is None else float(v)
+    if v is None:
+        return default
+    try:
+        return float(v)
+    except (ValueError, TypeError):
+        return default
 
 
 def compute_engineered(raw):
@@ -569,10 +574,10 @@ with tab2:
                     st.plotly_chart(fig, use_container_width=True)
 
                     uncertainty = std_proba[i] * 100
-                    emoji = ("🟢" if uncertainty < 3 else
-                             "🟡" if uncertainty < 8 else "🔴")
-                    conf = ("High" if uncertainty < 3 else
-                            "Moderate" if uncertainty < 8 else "Low")
+                    emoji = ("🟢" if uncertainty < 15 else
+                             "🟡" if uncertainty < 25 else "🔴")
+                    conf = ("High" if uncertainty < 15 else
+                            "Moderate" if uncertainty < 25 else "Low")
                     st.caption(
                         f"{emoji} {conf} confidence · "
                         f"95% CI: [{ci_lower[i]*100:.1f}%"
@@ -712,7 +717,7 @@ with tab2:
                         explain_df["value"])
                 ]
                 colors = [
-                    "#DC2626" if s > 0 else "#059669"
+                    "#059669" if s > 0 else "#DC2626"
                     for s in explain_df["shap"]
                 ]
 
@@ -748,12 +753,12 @@ with tab2:
                     '<div class="impute-box" style="background:#EFF6FF;'
                     'border-left-color:#2563EB;color:#1E40AF;">'
                     '<strong>How to read:</strong> '
-                    'Each bar shows how much a feature pushed the '
-                    'model toward (<span style="color:#DC2626">'
-                    'red</span>) or away from '
-                    '(<span style="color:#059669">green</span>) '
-                    'the predicted class. The number after "=" is '
-                    'the actual patient value used by the model.'
+                    '<span style="color:#059669"><b>Green</b></span>'
+                    ' bars <b>support</b> this prediction — '
+                    '<span style="color:#DC2626"><b>Red</b></span>'
+                    ' bars <b>oppose</b> it. '
+                    'The value after "=" is the actual patient '
+                    'measurement used by the model.'
                     '</div>',
                     unsafe_allow_html=True)
             except Exception as shap_err:
