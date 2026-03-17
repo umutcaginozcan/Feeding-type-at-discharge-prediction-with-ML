@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from pathlib import Path
+import shap
 
 # ==================== PAGE CONFIG ====================
 
@@ -657,6 +658,102 @@ with tab2:
                 st.success(
                     f"All {len(MODEL_FEATURES)} features were "
                     f"provided — no imputation was needed.")
+
+            # ---- Per-Patient Explainability (SHAP) ----
+            st.markdown("### 🔍 Why This Prediction?")
+            st.caption(
+                "Feature contributions (SHAP values) for the "
+                "predicted class. Positive = pushes toward this "
+                "prediction; negative = pushes away.")
+
+            try:
+                prep = model_pipeline.named_steps["prep"]
+                clf = model_pipeline.named_steps["clf"]
+                X_transformed = prep.transform(input_df)
+
+                explainer = shap.TreeExplainer(clf)
+                shap_values = explainer.shap_values(X_transformed)
+
+                # Handle both old (list) and new (3D array) SHAP API
+                sv_arr = np.array(shap_values)
+                if sv_arr.ndim == 3:
+                    # v0.48+: shape (n_samples, n_features, n_classes)
+                    sv = sv_arr[0, :, prediction]
+                else:
+                    # older: list of (n_samples, n_features) per class
+                    sv = shap_values[prediction][0]
+                feat_vals = X_transformed[0]  # preprocessed values
+
+                # Build sorted dataframe
+                explain_df = pd.DataFrame({
+                    "feature_raw": MODEL_FEATURES,
+                    "shap": sv,
+                    "value": feat_vals,
+                })
+                explain_df["abs_shap"] = explain_df["shap"].abs()
+                explain_df = explain_df.sort_values(
+                    "abs_shap", ascending=True)  # bottom=smallest
+                top_n = min(12, len(explain_df))
+                explain_df = explain_df.tail(top_n)
+
+                # Human-readable names + values
+                labels = [
+                    f"{FEATURE_DISPLAY_NAMES.get(f, f)}\n"
+                    f"= {v:.2f}"
+                    for f, v in zip(
+                        explain_df["feature_raw"],
+                        explain_df["value"])
+                ]
+                colors = [
+                    "#DC2626" if s > 0 else "#059669"
+                    for s in explain_df["shap"]
+                ]
+
+                fig_shap = go.Figure(go.Bar(
+                    y=labels,
+                    x=explain_df["shap"],
+                    orientation="h",
+                    marker_color=colors,
+                    text=[f"{s:+.3f}" for s in explain_df["shap"]],
+                    textposition="outside",
+                    textfont=dict(size=11),
+                ))
+                pred_label = CLASS_LABELS[prediction]
+                fig_shap.update_layout(
+                    title=dict(
+                        text=f"Feature Contributions → "
+                             f"{pred_label}",
+                        font=dict(size=14)),
+                    xaxis_title="SHAP Value (impact on prediction)",
+                    yaxis_title="",
+                    height=max(350, top_n * 42),
+                    margin=dict(l=10, r=60, t=40, b=40),
+                    plot_bgcolor="white",
+                    font=dict(size=11),
+                )
+                fig_shap.update_xaxes(
+                    showgrid=True, gridcolor="#E2E8F0",
+                    zeroline=True, zerolinecolor="#1E293B",
+                    zerolinewidth=1.5)
+                st.plotly_chart(fig_shap, use_container_width=True)
+
+                st.markdown(
+                    '<div class="impute-box" style="background:#EFF6FF;'
+                    'border-left-color:#2563EB;color:#1E40AF;">'
+                    '<strong>How to read:</strong> '
+                    'Each bar shows how much a feature pushed the '
+                    'model toward (<span style="color:#DC2626">'
+                    'red</span>) or away from '
+                    '(<span style="color:#059669">green</span>) '
+                    'the predicted class. The number after "=" is '
+                    'the actual patient value used by the model.'
+                    '</div>',
+                    unsafe_allow_html=True)
+            except Exception as shap_err:
+                st.warning(
+                    f"Could not generate SHAP explanation: "
+                    f"{shap_err}")
+
 
         except Exception as e:
             st.error(f"Error: {str(e)}")
