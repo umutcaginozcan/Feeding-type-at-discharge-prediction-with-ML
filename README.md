@@ -103,8 +103,7 @@ Patient data is processed in-browser and is **not stored or transmitted**.
 ## Citation
 
 ```
-Ozcan, U. C., et al. (2026). Machine Learning-Based Prediction of Feeding Type
-at Discharge in NICU Infants Using Early Clinical Data.
+...
 ```
 
 ## License
