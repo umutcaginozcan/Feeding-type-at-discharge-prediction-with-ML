@@ -56,6 +56,16 @@ st.markdown("""
         color: #991B1B;
         font-family: 'Inter', sans-serif;
     }
+    .impute-box {
+        background: #FFFBEB;
+        border-left: 4px solid #D97706;
+        padding: 0.6rem 1rem;
+        border-radius: 0 8px 8px 0;
+        margin: 0.5rem 0;
+        font-size: 0.85rem;
+        color: #92400E;
+        font-family: 'Inter', sans-serif;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -109,6 +119,39 @@ EXAMPLE_PATIENT = {
     "d3_formula": 15.0,
     "weight_d3": 2300,
     "d3_route": "BF+PO",
+}
+
+# Human-readable names for pipeline features
+FEATURE_DISPLAY_NAMES = {
+    "anneyasi": "Maternal Age",
+    "dogumagirligi(gram)": "Birth Weight (g)",
+    "gebelikhaftası": "Gestational Age (weeks)",
+    "gebelikhaftagunu": "Gestational Days",
+    "takipilkgün_kilo_gram": "Follow-up Weight (g)",
+    "eng_weight_per_week": "Weight per GA Week ★",
+    "annesutuemzirmeeğitimidurumu": "Breastfeeding Education",
+    "bebek_dostu_20temmuz2018": "BFHI Status",
+    "aldığıannesütü_ilkgün": "Day 1 Breast Milk (cc)",
+    "aldığımamamiktari1.gün": "Day 1 Formula (cc)",
+    "kilo1.gun": "Day 1 Weight (g)",
+    "ilk_gün_anne_sütü_1111": "Day 1 BM Given (flag)",
+    "ilk_gün_emzirme_111": "Day 1 Breastfeeding (flag)",
+    "eng_bm_ratio_d1": "Day 1 BM Ratio ★",
+    "beslenmetotali2.gün": "Day 2 Total Intake (cc)",
+    "beslenme2.gunannesutucc": "Day 2 Breast Milk (cc)",
+    "beslenmemamamiktarı2.guncc": "Day 2 Formula (cc)",
+    "kilo2.gun": "Day 2 Weight (g)",
+    "eng_bm_ratio_d2": "Day 2 BM Ratio ★",
+    "eng_delta_vol_d1_d2": "Volume Change D1→D2 ★",
+    "beslenmetotali3.gun": "Day 3 Total Intake (cc)",
+    "aldıgıannesütü3.gun": "Day 3 Breast Milk (cc)",
+    "aldıgımamamiktari3.gun": "Day 3 Formula (cc)",
+    "kilo3.gun": "Day 3 Weight (g)",
+    "verilisyolu3gun": "Day 3 Feeding Route",
+    "eng_bm_ratio_d3": "Day 3 BM Ratio ★",
+    "eng_delta_vol_d2_d3": "Volume Change D2→D3 ★",
+    "eng_lactation_momentum": "Lactation Momentum ★",
+    "eng_resilience_index": "Resilience Index ★",
 }
 
 # ==================== MODEL LOADING ====================
@@ -567,6 +610,53 @@ with tab2:
                 plot_bgcolor="white", font=dict(size=12))
             fig_ci.update_xaxes(showgrid=True, gridcolor="#E2E8F0")
             st.plotly_chart(fig_ci, use_container_width=True)
+
+            # ---- Imputation Transparency ----
+            imputed_rows = []
+            prep = model_pipeline.named_steps.get("prep")
+            if prep and hasattr(prep, "transformers_"):
+                for tr_name, transformer, cols in prep.transformers_:
+                    if hasattr(transformer, "statistics_"):
+                        for col, median_val in zip(cols, transformer.statistics_):
+                            if col in MODEL_FEATURES:
+                                user_val = input_df[col].iloc[0]
+                                if pd.isna(user_val):
+                                    display = FEATURE_DISPLAY_NAMES.get(
+                                        col, col)
+                                    imputed_rows.append({
+                                        "Field": display,
+                                        "Imputed Value": round(
+                                            median_val, 2),
+                                        "Method":
+                                            "Training-set median",
+                                    })
+
+            if imputed_rows:
+                st.markdown("### ℹ️ Data Completeness")
+                n_total = len(MODEL_FEATURES)
+                n_provided = n_total - len(imputed_rows)
+                pct = n_provided / n_total * 100
+                st.markdown(
+                    f'<div class="impute-box">'
+                    f'You provided <strong>{n_provided}/{n_total}'
+                    f'</strong> features ({pct:.0f}%). '
+                    f'The {len(imputed_rows)} field(s) below were '
+                    f'automatically filled using <strong>training-set '
+                    f'median</strong> values (the typical value '
+                    f'observed in the development cohort).</div>',
+                    unsafe_allow_html=True)
+                st.dataframe(
+                    pd.DataFrame(imputed_rows),
+                    use_container_width=True, hide_index=True)
+                st.caption(
+                    "★ = Engineered feature computed from other "
+                    "inputs. If its source fields are missing, "
+                    "it is also imputed.")
+            else:
+                st.markdown("### ✅ Data Completeness")
+                st.success(
+                    f"All {len(MODEL_FEATURES)} features were "
+                    f"provided — no imputation was needed.")
 
         except Exception as e:
             st.error(f"Error: {str(e)}")
