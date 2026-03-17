@@ -4,7 +4,7 @@
 *.xlsm
 *.csv
 
-# Generated outputs (can be recreated by running Stage scripts)
+# Generated outputs (can be recreated by running pipeline scripts)
 outputs/
 
 # Python
@@ -44,7 +44,6 @@ Icon
 ._*
 
 # IDE
-# .vscode/  # Allowing .vscode for project Python interpreter settings
 .idea/
 *.swp
 *.swo
@@ -55,19 +54,11 @@ Icon
 .env.local
 
 # Model files (large binary files)
-# *.pkl  # Commented out - we need trained_model.pkl for deployment
+# *.pkl  # Commented out - we need .pkl models for deployment
 *.joblib
 
 # Antigravity brain directory
 .gemini/
 
-# NICU data directories (contains sensitive patient data)
-excels-NICU-breatsfeeding-data/
-excels-NICU-data/
-
-# Project organization - exclude from git
-backups/
-scripts/maintenance/
-scripts/legacy/
-*.backup
-*.backup2
+# NICU data directory (contains sensitive patient data)
+data/
